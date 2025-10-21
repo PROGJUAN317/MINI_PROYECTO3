@@ -9,8 +9,8 @@ public class Batalla {
 
     // Constructor
     public Batalla(){
-        this.equipoHeroes = new Heroe[5];
-        this.equipoEnemigos = new Enemigo[5];
+        this.equipoHeroes = new Heroe[4];
+        this.equipoEnemigos = new Enemigo[3];
         this.turnoActual = 0;
         this.batallaTerminada = false;
     }

@@ -65,10 +65,10 @@ public class App {
     }
     
     private static void crearHeroeIndividual() {
-        System.out.print("Ingrese la posición (1-5): ");
+        System.out.print("Ingrese la posición (1-4): ");
         int posicion = leerEntero() - 1;
-        
-        if (posicion >= 0 && posicion < 5) {
+
+        if (posicion >= 0 && posicion < 4) {
             batalla.crearYAgregarHeroe(posicion);
         } else {
             System.out.println(" Posición inválida.");
@@ -76,10 +76,10 @@ public class App {
     }
     
     private static void crearEnemigoIndividual() {
-        System.out.print("Ingrese la posición (1-5): ");
+        System.out.print("Ingrese la posición (1-3): ");
         int posicion = leerEntero() - 1;
-        
-        if (posicion >= 0 && posicion < 5) {
+
+        if (posicion >= 0 && posicion < 3) {
             System.out.println("Seleccione el tipo de enemigo:");
             Tipo_Enemigo[] tipos = Tipo_Enemigo.values();
             for (int i = 0; i < tipos.length; i++) {

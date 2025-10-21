@@ -1,6 +1,6 @@
 package dqs.modelo;
 
-public class Enemigo extends Personaje implements Agresivo {
+public class Enemigo extends Personaje implements Agresivo, Jefe {
 	private final Tipo_Enemigo tipo;
 
 	public Enemigo(String nombre, int hp, int mp, int ataque, int defensa, int velocidad, Tipo_Enemigo tipo) {
@@ -98,6 +98,17 @@ public class Enemigo extends Personaje implements Agresivo {
         } else {
             System.out.println(this.nombre + " no encontró héroes vivos para atacar.");
         }
+    }
+
+    @Override
+    public int TurnosParaAtacar() {
+        byte turnos = 2;
+        if (turnos >= 0) {
+            turnos--;
+        } else if (turnos < 0) {
+            turnos = 2;
+        }
+        return turnos; // Por ejemplo, el jefe ataca cada 2 turnos
     }
 
     @Override
