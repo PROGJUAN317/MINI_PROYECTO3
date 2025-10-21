@@ -1,5 +1,6 @@
 package dqs.modelo;
 
+@SuppressWarnings("unused")
 public abstract class Personaje {
     protected String nombre;
     protected int hp;
@@ -35,8 +36,9 @@ public abstract class Personaje {
         this.velocidad = velocidad;
         this.esta_vivo = hp > 0;
     }
+    @SuppressWarnings("unused")
     public void recibir_daño(int cantidad){
-        int dañoFinal = cantidad;
+        int dañoFinal;
         
         // Si está siendo defendido por un tanque, aplicar defensa combinada
         if (siendo_defendido && defensor != null && defensor.esta_vivo()) {
