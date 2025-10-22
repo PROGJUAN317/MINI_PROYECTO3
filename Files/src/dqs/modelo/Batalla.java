@@ -55,6 +55,52 @@ public class Batalla {
         }
     }
 
+    /**
+     * Crear un enemigo de forma interactiva: pide posición, lista tipos,
+     * pide nombre y registra el enemigo en la posición indicada.
+     */
+    public void crearEnemigoInteractivo(java.util.Scanner scanner) {
+        System.out.print("Ingrese la posición (1-3): ");
+        int posicion;
+        try {
+            String line = scanner.nextLine();
+            posicion = Integer.parseInt(line) - 1;
+        } catch (Exception e) {
+            System.out.println(" Posición inválida (entrada no numérica).");
+            return;
+        }
+
+        if (posicion >= 0 && posicion < equipoEnemigos.length) {
+            System.out.println("Seleccione el tipo de enemigo:");
+            Tipo_Enemigo[] tipos = Tipo_Enemigo.values();
+            for (int i = 0; i < tipos.length; i++) {
+                System.out.println((i + 1) + ". " + tipos[i].name() + " - " + tipos[i].getDescripcion());
+            }
+            System.out.print("Tipo: ");
+            int tipoIndex;
+            try {
+                String tline = scanner.nextLine();
+                tipoIndex = Integer.parseInt(tline) - 1;
+            } catch (Exception ex) {
+                System.out.println(" Tipo inválido (entrada no numérica).");
+                return;
+            }
+
+            if (tipoIndex >= 0 && tipoIndex < Tipo_Enemigo.values().length) {
+                System.out.print("Nombre del enemigo: ");
+                String nombre = scanner.nextLine();
+                Enemigo enemigo = Enemigo.crearEnemigo(Tipo_Enemigo.values()[tipoIndex], nombre);
+                agregarEnemigo(enemigo, posicion);
+                System.out.println(" Enemigo creado exitosamente!");
+                enemigo.mostrarEstado();
+            } else {
+                System.out.println(" Tipo inválido.");
+            }
+        } else {
+            System.out.println(" Posición inválida.");
+        }
+    }
+
     // Método para crear todo el equipo de héroes
     public void crearEquipoHeroes() {
         System.out.println("\n=== CREACIÓN DEL EQUIPO DE HÉROES ===");
