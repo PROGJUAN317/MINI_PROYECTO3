@@ -138,4 +138,11 @@ public class Enemigo extends Personaje implements Agresivo, Jefe {
          " | Defensa: " + defensa +
          " | Velocidad: " + velocidad;
     }
+
+    @Override
+    public void AtacarATodos() {
+        // Si deseas un objetivo arreglo, deberías pasarlo; aquí asumimos que atacará a un conjunto global
+        // Implementación por defecto: no hace nada si no hay contexto. Puedes llamar a atacarAleatorio en un bucle
+        System.out.println(this.nombre + " intenta usar AtacarATodos(), pero no hay contexto de objetivos.");
+    }
 }

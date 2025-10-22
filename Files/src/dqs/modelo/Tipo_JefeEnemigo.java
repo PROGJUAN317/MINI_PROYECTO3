@@ -1,3 +1,5 @@
+package dqs.modelo;
+
 public enum Tipo_JefeEnemigo {
     REY_DRAGON (300, 500, 100, 200, 500, 100, 300, 600, 200, 400, "Un dragón feroz que escupe fuego."),
     NIGROMANTE (300, 450, 150, 250, 350, 70, 250, 500, 100, 200, "Maestro de las artes oscuras y la necromancia."),

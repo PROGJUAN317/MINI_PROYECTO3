@@ -1,0 +1,13 @@
+C:\Users\sebas\OneDrive\Desktop\JAVA\Mini Proyecto3\MINI_PROYECTO3\Files\src\dqs\controlador\Controlador_Batalla.java
+C:\Users\sebas\OneDrive\Desktop\JAVA\Mini Proyecto3\MINI_PROYECTO3\Files\src\dqs\main\App.java
+C:\Users\sebas\OneDrive\Desktop\JAVA\Mini Proyecto3\MINI_PROYECTO3\Files\src\dqs\modelo\Agresivo.java
+C:\Users\sebas\OneDrive\Desktop\JAVA\Mini Proyecto3\MINI_PROYECTO3\Files\src\dqs\modelo\Batalla.java
+C:\Users\sebas\OneDrive\Desktop\JAVA\Mini Proyecto3\MINI_PROYECTO3\Files\src\dqs\modelo\Enemigo.java
+C:\Users\sebas\OneDrive\Desktop\JAVA\Mini Proyecto3\MINI_PROYECTO3\Files\src\dqs\modelo\Heroe.java
+C:\Users\sebas\OneDrive\Desktop\JAVA\Mini Proyecto3\MINI_PROYECTO3\Files\src\dqs\modelo\Jefe.java
+C:\Users\sebas\OneDrive\Desktop\JAVA\Mini Proyecto3\MINI_PROYECTO3\Files\src\dqs\modelo\Personaje.java
+C:\Users\sebas\OneDrive\Desktop\JAVA\Mini Proyecto3\MINI_PROYECTO3\Files\src\dqs\modelo\Sanador.java
+C:\Users\sebas\OneDrive\Desktop\JAVA\Mini Proyecto3\MINI_PROYECTO3\Files\src\dqs\modelo\Tanque.java
+C:\Users\sebas\OneDrive\Desktop\JAVA\Mini Proyecto3\MINI_PROYECTO3\Files\src\dqs\modelo\Tipo_Enemigo.java
+C:\Users\sebas\OneDrive\Desktop\JAVA\Mini Proyecto3\MINI_PROYECTO3\Files\src\dqs\modelo\Tipo_Heroe.java
+C:\Users\sebas\OneDrive\Desktop\JAVA\Mini Proyecto3\MINI_PROYECTO3\Files\src\dqs\modelo\Tipo_JefeEnemigo.java
