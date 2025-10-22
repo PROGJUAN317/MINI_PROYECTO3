@@ -64,6 +64,32 @@ public class Batalla {
         System.out.println("\n¡Equipo de héroes completo!");
     }
 
+    /**
+     * Interfaz para crear un héroe interactivamente desde la entrada
+     * estándar. Recibe un `Scanner` (proveído por la capa de UI) para
+     * leer la posición solicitada y reutiliza `crearYAgregarHeroe`.
+     *
+     * Este método traslada a `Batalla` la responsabilidad de validación
+     * y creación de héroes (antes estaba duplicada en `App`).
+     */
+    public void crearHeroeInteractivo(java.util.Scanner scanner) {
+        System.out.print("Ingrese la posición (1-4): ");
+        int posicion;
+        try {
+            String line = scanner.nextLine();
+            posicion = Integer.parseInt(line) - 1;
+        } catch (Exception e) {
+            System.out.println(" Posición inválida (entrada no numérica).");
+            return;
+        }
+
+        if (posicion >= 0 && posicion < equipoHeroes.length) {
+            crearYAgregarHeroe(posicion);
+        } else {
+            System.out.println(" Posición inválida.");
+        }
+    }
+
     // Método para crear todo el equipo de enemigos
     public void crearEquipoEnemigos() {
         System.out.println("\n=== CREACIÓN DEL EQUIPO DE ENEMIGOS ===");
@@ -108,6 +134,24 @@ public class Batalla {
          
     public void setTurnoActual(int turnoActual) {
          this.turnoActual = turnoActual; }
+
+    /**
+     * Método auxiliar para iniciar una batalla desde un controlador.
+     * Implementación mínima: resetea el estado de la batalla.
+     */
+    public void iniciar() {
+        this.turnoActual = 1;
+        this.batallaTerminada = false;
+        System.out.println("Batalla iniciada (estado reseteado)." );
+    }
+
+    /**
+     * Marca la batalla como finalizada.
+     */
+    public void finalizar() {
+        this.batallaTerminada = true;
+        System.out.println("Batalla finalizada por el controlador.");
+    }
 
 
 }

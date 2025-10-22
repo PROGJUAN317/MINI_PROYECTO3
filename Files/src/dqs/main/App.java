@@ -7,17 +7,44 @@ import java.util.concurrent.TimeUnit;
 
 import dqs.modelo.*;
 
+/**
+ * Punto de entrada y capa de interacción (CLI) del juego.
+ *
+ * Esta clase orquesta la creación de equipos, la ejecución de batallas y
+ * contiene menús y pruebas rápidas. La lógica de batalla usa la clase
+ * `Batalla` (modelo) y las entidades `Heroe` y `Enemigo` del paquete
+ * `dqs.modelo`.
+ */
 public class App {
     private static final Scanner scanner = new Scanner(System.in);
     private static final Batalla batalla = new Batalla();
 
+    /**
+     * Método principal: punto de entrada de la aplicación.
+     * Imprime un mensaje de bienvenida y arranca el menú principal.
+     *
+     * Efectos secundarios: usa el `Scanner` estático para leer entrada
+     * del usuario y delega en `mostrarMenuPrincipal()`.
+     */
     public static void main(String[] args) {
         System.out.println("  ¡Bienvenido al Sistema de Batallas RPG!");
         System.out.println("==========================================");
-        
+
         mostrarMenuPrincipal();
     }
     
+    /**
+     * Muestra el menú principal en bucle y atiende la entrada del usuario.
+     *
+     * Opciones principales:
+     * - Crear equipos
+     * - Mostrar equipos (delegado a `Batalla`)
+     * - Iniciar batalla (invoca `iniciarBatalla`)
+     * - Pruebas rápidas de mecánicas
+     * - Salir
+     *
+     * Lee la opción con `leerEntero()` y delega en los métodos correspondientes.
+     */
     private static void mostrarMenuPrincipal() {
         while (true) {
             System.out.println("\n=== MENÚ PRINCIPAL ===");
@@ -44,6 +71,13 @@ public class App {
         }
     }
     
+    /**
+     * Submenú para crear equipos o personajes individuales.
+     *
+     * Delegaciones importantes:
+     * - `batalla.crearEquipoHeroes()` y `batalla.crearEquipoEnemigos()`
+     * - `crearHeroeIndividual()` y `crearEnemigoIndividual()` para creación guiada
+     */
     private static void menuCrearEquipos() {
         System.out.println("\n=== CREACIÓN DE EQUIPOS ===");
         System.out.println("1. Crear Equipo de Héroes");
@@ -64,17 +98,28 @@ public class App {
         }
     }
     
+    /**
+     * Crea un héroe en una posición específica del arreglo de `Batalla`.
+     *
+     * Pide por consola la posición (1-4) y delega la construcción/registro
+     * a `batalla.crearYAgregarHeroe(posicion)`.
+     */
     private static void crearHeroeIndividual() {
-        System.out.print("Ingrese la posición (1-4): ");
-        int posicion = leerEntero() - 1;
-
-        if (posicion >= 0 && posicion < 4) {
-            batalla.crearYAgregarHeroe(posicion);
-        } else {
-            System.out.println(" Posición inválida.");
-        }
+        // Delegar la interacción y validación a la clase `Batalla`.
+        // `Batalla` recibe el `Scanner` para leer la entrada del usuario
+        // y se encarga de crear y agregar el héroe en la posición indicada.
+        batalla.crearHeroeInteractivo(scanner);
     }
     
+    /**
+     * Crea un enemigo en una posición específica del arreglo de `Batalla`.
+     *
+     * Flujo:
+     *  - Pide posición (1-3)
+     *  - Lista los `Tipo_Enemigo` disponibles (proveen rangos y descripción)
+     *  - Pide nombre y crea el `Enemigo` con `Enemigo.crearEnemigo(...)`
+     *  - Lo registra con `batalla.agregarEnemigo(...)`
+     */
     private static void crearEnemigoIndividual() {
         System.out.print("Ingrese la posición (1-3): ");
         int posicion = leerEntero() - 1;
@@ -103,6 +148,13 @@ public class App {
         }
     }
     
+    /**
+     * Inicia la simulación de batalla.
+     *
+     * Verifica precondiciones (al menos un héroe y un enemigo). Si se cumple,
+     * muestra los equipos y llama a `simulacionDeBatalla()` para ejecutar el bucle
+     * de combate. Evita iniciar si algún equipo está vacío.
+     */
     private static void iniciarBatalla() {
         // Verificar que ambos equipos tengan al menos un miembro
         boolean hayHeroes = false, hayEnemigos = false;
@@ -126,6 +178,20 @@ public class App {
         simulacionDeBatalla();
     }
     
+    /**
+     * Ejecuta el bucle principal de la batalla por turnos.
+     *
+     * Flujo actual:
+     *  - Mostrar estado actual
+     *  - Turno de héroes (manual): `turnoHeroesManual()`
+     *  - Comprobar victoria
+     *  - Turno de enemigos (automático): ejecuta acciones con un scheduler
+     *  - Comprobar victoria y avanzar turno
+     *
+     * Nota: si se implementa un sistema por velocidad, este método es el
+     * candidato a ser refactorizado para usar el orden por velocidad en vez
+     * de la secuencia héroes -> enemigos.
+     */
     private static void simulacionDeBatalla() {
         int turno = 1;
         
@@ -186,6 +252,12 @@ public class App {
         }
     }
     
+    /**
+     * Muestra en consola el estado resumido de la batalla: héroes vivos y
+     * enemigos vivos (nombre, tipo, HP y MP).
+     *
+     * Usa los getters de `Heroe`/`Enemigo` y es puramente informativo.
+     */
     private static void mostrarEstadoActual() {
         System.out.println("\n ESTADO ACTUAL DE LA BATALLA:");
         
@@ -208,6 +280,14 @@ public class App {
         }
     }
     
+    /**
+     * Recorre el arreglo de héroes y para cada héroe vivo solicita una acción
+     * manual al jugador mediante `mostrarMenuAccionHeroe(heroe)`.
+     *
+     * Este método asume que el jugador elegirá acciones válidas; si más
+     * adelante se usa orden por velocidad, este flujo deberá integrarse
+     * dentro del scheduler de turnos.
+     */
     private static void turnoHeroesManual() {
         for (Heroe heroe : batalla.getEquipoHeroes()) {
             if (heroe != null && heroe.esta_vivo()) {
@@ -221,6 +301,13 @@ public class App {
         }
     }
     
+    /**
+     * Muestra el menú de acciones disponible para un héroe concreto y
+     * lee la opción del usuario hasta que se ejecute una acción válida.
+     *
+     * Las opciones disponibles dependen de `Tipo_Heroe` (ej: Druida puede
+     * curar, Guerrero puede defender, Paladín puede revivir, etc.).
+     */
     private static void mostrarMenuAccionHeroe(Heroe heroe) {
         while (true) {
             System.out.println("\n¿Qué acción desea realizar?");
@@ -254,6 +341,13 @@ public class App {
         }
     }
     
+    /**
+     * Ejecuta la acción seleccionada por el jugador para el héroe.
+     *
+     * Retorna `true` cuando la acción se ha ejecutado y el turno del héroe
+     * debe terminar; retorna `false` para indicar opción inválida y volver
+     * a solicitar entrada.
+     */
     private static boolean ejecutarAccionHeroe(Heroe heroe, int opcion) {
         switch (opcion) {
             case 1 -> {
@@ -314,6 +408,13 @@ public class App {
         return false;
     }
     
+    /**
+     * Comprueba el estado de victoria/derrota: si todos los héroes están
+     * muertos => derrota; si todos los enemigos están muertos => victoria.
+     *
+     * Si la batalla ha terminado, marca `batalla.setBatallaTerminada(true)`
+     * y retorna `true`.
+     */
     private static boolean verificarVictoria() {
         boolean heroesVivos = false, enemigosVivos = false;
         
@@ -344,6 +445,11 @@ public class App {
         return false;
     }
     
+    /**
+     * Menú para ejecutar pruebas rápidas de mecánicas concretas: defensa
+     * de tanque, provocación y curación. Útil para depuración y ver
+     * el comportamiento de los métodos en `Heroe`/`Enemigo`.
+     */
     private static void menuPruebaMecanicas() {
         System.out.println("\n=== PRUEBA DE MECÁNICAS ===");
         System.out.println("1. Prueba de Defensa del Tanque");
@@ -362,6 +468,11 @@ public class App {
         }
     }
     
+    /**
+     * Prueba de la mecánica de defensa por tanque:
+     *  - Crea un tanque (Heroe), un mago (Heroe) y un enemigo.
+     *  - El tanque defiende al mago y se muestra la reducción de daño.
+     */
     private static void pruebaDefensaTanque() {
         System.out.println("\n PRUEBA DE DEFENSA DEL TANQUE ");
         
@@ -383,6 +494,12 @@ public class App {
         mago.mostrarEstado();
     }
     
+    /**
+     * Prueba de la mecánica de provocación:
+     *  - Crea un tanque y provoca a un enemigo.
+     *  - Verifica que `atacarConProvocacion` haga que el enemigo ataque
+     *    al provocador cuando corresponda.
+     */
     private static void pruebaProvocacion() {
         System.out.println("\n PRUEBA DE PROVOCACIÓN ");
         
@@ -403,6 +520,11 @@ public class App {
         enemigo.atacarConProvocacion(heroes);
     }
     
+    /**
+     * Prueba de la mecánica de curación:
+     *  - Crea un sanador y un héroe con HP bajo y muestra el efecto de
+     *    `curar(herido)`.
+     */
     private static void pruebaCuracion() {
         System.out.println("\n PRUEBA DE CURACIÓN ");
         
@@ -420,6 +542,10 @@ public class App {
     }
     
     // Método auxiliar para convertir Heroe[] a Personaje[]
+    /**
+     * Convierte un arreglo de `Heroe[]` a `Personaje[]` (covarianza manual)
+     * para poder pasar la colección a métodos que aceptan `Personaje[]`.
+     */
     private static Personaje[] convertirHeroesAPersonajes(Heroe[] heroes) {
         Personaje[] personajes = new Personaje[heroes.length];
         System.arraycopy(heroes, 0, personajes, 0, heroes.length);
@@ -427,6 +553,12 @@ public class App {
     }
     
     // Métodos para acciones específicas de héroes
+    /**
+     * Helper: muestra la lista de enemigos disponibles y ejecuta el ataque
+     * seleccionado por el héroe.
+     *
+     * Retorna true si el héroe atacó correctamente (consumió su acción).
+     */
     private static boolean atacarConHeroe(Heroe heroe) {
         System.out.println("\n Seleccione el enemigo a atacar:");
         Enemigo objetivo = seleccionarEnemigo();
@@ -437,6 +569,10 @@ public class App {
         return false;
     }
     
+    /**
+     * Helper: selecciona un aliado y hace que el héroe lo defienda (mecánica
+     * de tanque). Valida que el héroe no seleccione a sí mismo.
+     */
     private static boolean defenderConHeroe(Heroe heroe) {
         System.out.println("\n Seleccione el aliado a defender:");
         Heroe aliado = seleccionarHeroe();
@@ -449,6 +585,9 @@ public class App {
         return false;
     }
     
+    /**
+     * Helper: selecciona un enemigo y aplica provocación desde el héroe.
+     */
     private static boolean provocarConHeroe(Heroe heroe) {
         System.out.println("\n Seleccione el enemigo a provocar:");
         Enemigo enemigo = seleccionarEnemigo();
@@ -459,6 +598,10 @@ public class App {
         return false;
     }
     
+    /**
+     * Helper: selecciona un aliado y aplica la habilidad de curación del
+     * héroe (si está permitido por su tipo).
+     */
     private static boolean curarConHeroe(Heroe heroe) {
         System.out.println("\n Seleccione el aliado a curar:");
         Heroe aliado = seleccionarHeroe();
@@ -469,6 +612,10 @@ public class App {
         return false;
     }
     
+    /**
+     * Helper: selecciona un aliado y restaura su mana según la habilidad
+     * del héroe (ej: Druida).
+     */
     private static boolean restaurarManaConHeroe(Heroe heroe) {
         System.out.println("\n Seleccione el aliado para restaurar mana:");
         Heroe aliado = seleccionarHeroe();
@@ -479,6 +626,10 @@ public class App {
         return false;
     }
     
+    /**
+     * Helper: selecciona un aliado y elimina efectos negativos (según el
+     * tipo del héroe y su implementación).
+     */
     private static boolean eliminarEfectoConHeroe(Heroe heroe) {
         System.out.println("\n Seleccione el aliado para eliminar efectos negativos:");
         Heroe aliado = seleccionarHeroe();
@@ -489,6 +640,10 @@ public class App {
         return false;
     }
     
+    /**
+     * Helper: selecciona un héroe muerto y aplica la habilidad de revivir
+     * (solo disponible para Paladín según el menú).
+     */
     private static boolean revivirConHeroe(Heroe heroe) {
         System.out.println("\n Seleccione el aliado a revivir:");
         Heroe aliado = seleccionarHeroeMuerto();
@@ -499,6 +654,10 @@ public class App {
         return false;
     }
     
+    /**
+     * Muestra la lista de enemigos vivos y devuelve el seleccionado por
+     * el usuario. Si el usuario elige la opción de cancelar devuelve null.
+     */
     private static Enemigo seleccionarEnemigo() {
         System.out.println("Enemigos disponibles:");
         int contador = 1;
@@ -530,6 +689,10 @@ public class App {
         return null;
     }
     
+    /**
+     * Muestra la lista de héroes vivos y devuelve el seleccionado. Retorna
+     * null si el usuario cancela.
+     */
     private static Heroe seleccionarHeroe() {
         System.out.println("Héroes disponibles:");
         int contador = 1;
@@ -561,6 +724,11 @@ public class App {
         return null;
     }
     
+    /**
+     * Muestra la lista de héroes caídos (no vivos) para selección en
+     * procesos como revivir. Retorna null si no hay héroes caídos o el
+     * usuario cancela.
+     */
     private static Heroe seleccionarHeroeMuerto() {
         System.out.println("Héroes caídos:");
         int contador = 1;
@@ -598,6 +766,12 @@ public class App {
         return null;
     }
     
+    /**
+     * Lee un entero de la entrada estándar de forma robusta. Si llega EOF
+     * termina la aplicación de forma limpia.
+     *
+     * Reintenta en caso de formato inválido.
+     */
     private static int leerEntero() {
         while (true) {
             try {
