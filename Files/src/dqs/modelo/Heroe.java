@@ -2,7 +2,7 @@ package dqs.modelo;
 
 import java.util.Scanner;
 
-public class Heroe extends Personaje implements Sanador, Tanque {
+public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
     private final Tipo_Heroe tipo;
 
     public Heroe(String nombre, Tipo_Heroe tipo, int hp, int mp, int ataque, int defensa, int velocidad) {
@@ -255,6 +255,62 @@ public class Heroe extends Personaje implements Sanador, Tanque {
             // Lógica para limpiar estados negativos
         } else {
             System.out.println(nombre + " no puede eliminar efectos negativos de " + objetivo.getNombre() + ".");
+        }
+    }
+
+    //METODOS DE LA INTERFAZ HECHICERO
+
+    @Override
+    public void LanzaHechizoSueño(Personaje objetivo) {
+        if (tipo == Tipo_Heroe.MAGO || tipo == Tipo_Heroe.DRUIDA) {
+            int costoMana = 20;
+            if (mp >= costoMana) {
+                mp -= costoMana;
+                int dañoHechizo = 40;
+                objetivo.recibir_daño(dañoHechizo);
+                System.out.println(nombre + " lanza el hechizo Sueño a " + objetivo.getNombre() +
+                                 " causando " + dañoHechizo + " puntos de daño.");
+            } else {
+                System.out.println(nombre + " no tiene suficiente MP para lanzar el hechizo.");
+            }
+        } else {
+            System.out.println(nombre + " no puede lanzar hechizos.");
+        }
+    }
+
+    @Override
+    public void LanzaHechizoRefuerzo(Personaje objetivo) {
+        if (tipo == Tipo_Heroe.MAGO || tipo == Tipo_Heroe.DRUIDA) {
+            int costoMana = 20;
+            if (mp >= costoMana) {
+                mp -= costoMana;
+                int aumento = 60;
+                objetivo.aumentarAtaque(aumento);
+                System.out.println(nombre + " lanza el hechizo Refuerzo a " + objetivo.getNombre() +
+                                 " aumentando su ataque en " + aumento + " puntos.");
+            } else {
+                System.out.println(nombre + " no tiene suficiente MP para lanzar el hechizo.");
+            }
+        } else {
+            System.out.println(nombre + " no puede lanzar hechizos.");
+        }
+    }
+
+    //Metodo para paralizar a un enemigo
+    @Override
+    public void LanzaHechizoParalisis(Personaje objetivo) {
+        if (tipo == Tipo_Heroe.MAGO || tipo == Tipo_Heroe.DRUIDA) {
+            int costoMana = 25;
+            if (mp >= costoMana) {
+                mp -= costoMana;
+                System.out.println(nombre + " lanza el hechizo Parálisis a " + objetivo.getNombre() +
+                                 ", paralizándolo por un turno.");
+                objetivo.serParalizado();
+            } else {
+                System.out.println(nombre + " no tiene suficiente MP para lanzar el hechizo.");
+            }
+        } else {
+            System.out.println(nombre + " no puede lanzar hechizos.");
         }
     }
 

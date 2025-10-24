@@ -55,6 +55,58 @@ public class Batalla {
         }
     }
 
+    /**
+     * Crear un enemigo de forma interactiva: pide posición, lista tipos,
+     * pide nombre y registra el enemigo en la posición indicada.
+     */
+    public void crearEnemigoInteractivo(java.util.Scanner scanner) {
+        System.out.print("Ingrese la posición (1-3): ");
+        int posicion;
+        try {
+            String line = scanner.nextLine();
+            posicion = Integer.parseInt(line) - 1;
+        } catch (NumberFormatException nfe) {
+            System.out.println(" Posición inválida (entrada no numérica).");
+            return;
+        } catch (java.util.NoSuchElementException | IllegalStateException ioe) {
+            System.out.println(" Error leyendo la entrada: " + ioe.getMessage());
+            return;
+        }
+
+        if (posicion >= 0 && posicion < equipoEnemigos.length) {
+            System.out.println("Seleccione el tipo de enemigo:");
+            Tipo_Enemigo[] tipos = Tipo_Enemigo.values();
+            for (int i = 0; i < tipos.length; i++) {
+                System.out.println((i + 1) + ". " + tipos[i].name() + " - " + tipos[i].getDescripcion());
+            }
+            System.out.print("Tipo: ");
+            int tipoIndex;
+            try {
+                String tline = scanner.nextLine();
+                tipoIndex = Integer.parseInt(tline) - 1;
+            } catch (NumberFormatException nfe) {
+                System.out.println(" Tipo inválido (entrada no numérica).");
+                return;
+            } catch (java.util.NoSuchElementException | IllegalStateException ioe) {
+                System.out.println(" Error leyendo la entrada: " + ioe.getMessage());
+                return;
+            }
+
+            if (tipoIndex >= 0 && tipoIndex < Tipo_Enemigo.values().length) {
+                System.out.print("Nombre del enemigo: ");
+                String nombre = scanner.nextLine();
+                Enemigo enemigo = Enemigo.crearEnemigo(Tipo_Enemigo.values()[tipoIndex], nombre);
+                agregarEnemigo(enemigo, posicion);
+                System.out.println(" Enemigo creado exitosamente!");
+                enemigo.mostrarEstado();
+            } else {
+                System.out.println(" Tipo inválido.");
+            }
+        } else {
+            System.out.println(" Posición inválida.");
+        }
+    }
+
     // Método para crear todo el equipo de héroes
     public void crearEquipoHeroes() {
         System.out.println("\n=== CREACIÓN DEL EQUIPO DE HÉROES ===");
@@ -62,6 +114,35 @@ public class Batalla {
             crearYAgregarHeroe(i);
         }
         System.out.println("\n¡Equipo de héroes completo!");
+    }
+
+    /**
+     * Interfaz para crear un héroe interactivamente desde la entrada
+     * estándar. Recibe un `Scanner` (proveído por la capa de UI) para
+     * leer la posición solicitada y reutiliza `crearYAgregarHeroe`.
+     *
+     * Este método traslada a `Batalla` la responsabilidad de validación
+     * y creación de héroes (antes estaba duplicada en `App`).
+     */
+    public void crearHeroeInteractivo(java.util.Scanner scanner) {
+        System.out.print("Ingrese la posición (1-4): ");
+        int posicion;
+        try {
+            String line = scanner.nextLine();
+            posicion = Integer.parseInt(line) - 1;
+        } catch (NumberFormatException nfe) {
+            System.out.println(" Posición inválida (entrada no numérica).");
+            return;
+        } catch (java.util.NoSuchElementException | IllegalStateException ioe) {
+            System.out.println(" Error leyendo la entrada: " + ioe.getMessage());
+            return;
+        }
+
+        if (posicion >= 0 && posicion < equipoHeroes.length) {
+            crearYAgregarHeroe(posicion);
+        } else {
+            System.out.println(" Posición inválida.");
+        }
     }
 
     // Método para crear todo el equipo de enemigos
@@ -108,6 +189,24 @@ public class Batalla {
          
     public void setTurnoActual(int turnoActual) {
          this.turnoActual = turnoActual; }
+
+    /**
+     * Método auxiliar para iniciar una batalla desde un controlador.
+     * Implementación mínima: resetea el estado de la batalla.
+     */
+    public void iniciar() {
+        this.turnoActual = 1;
+        this.batallaTerminada = false;
+        System.out.println("Batalla iniciada (estado reseteado)." );
+    }
+
+    /**
+     * Marca la batalla como finalizada.
+     */
+    public void finalizar() {
+        this.batallaTerminada = true;
+        System.out.println("Batalla finalizada por el controlador.");
+    }
 
 
 }

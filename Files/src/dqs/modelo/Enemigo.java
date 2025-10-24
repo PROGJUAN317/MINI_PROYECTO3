@@ -111,7 +111,7 @@ public class Enemigo extends Personaje implements Agresivo, Jefe {
         return turnos; // Por ejemplo, el jefe ataca cada 2 turnos
     }
 
-    @Override
+    
     public void usarHabilidadEspecial() {
         // Implementación requerida por la interfaz Jefe; comportamiento por defecto sin objetivo explícito.
         System.out.println(this.nombre + " (" + tipo.name() + ") usa su habilidad especial.");
@@ -149,5 +149,12 @@ public class Enemigo extends Personaje implements Agresivo, Jefe {
          " | Ataque: " + ataque +
          " | Defensa: " + defensa +
          " | Velocidad: " + velocidad;
+    }
+
+    @Override
+    public void AtacarATodos() {
+        // Si deseas un objetivo arreglo, deberías pasarlo; aquí asumimos que atacará a un conjunto global
+        // Implementación por defecto: no hace nada si no hay contexto. Puedes llamar a atacarAleatorio en un bucle
+        System.out.println(this.nombre + " intenta usar AtacarATodos(), pero no hay contexto de objetivos.");
     }
 }

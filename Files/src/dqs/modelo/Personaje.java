@@ -9,10 +9,13 @@ public abstract class Personaje {
     protected int defensa;
     protected int velocidad;
     protected boolean esta_vivo = true;
+    protected boolean esta_paralizado = false;
     protected boolean siendo_defendido = false;
-    protected Personaje defensor = null;
+    protected boolean esta_durmiendo = false;
+    protected boolean serparalizado = false;
     protected boolean esta_provocado = false;
     protected Personaje provocador = null;
+    protected Personaje defensor = null;
     public String getNombre() { return nombre; }
     public int getHp() { return hp; }
     public int getMp() { return mp; }
@@ -70,6 +73,25 @@ public abstract class Personaje {
         return esta_vivo;
     }
     
+    // Método protegido para aumentar el ataque
+    protected void aumentarAtaque(int aumento) {
+        if (aumento <= 0) return;
+        this.ataque += aumento;
+
+    }
+
+    // Métodos para manejar el estado de sueño
+    public void dormir() {
+        this.esta_durmiendo = true;
+        System.out.println(this.nombre + " ha caído dormido!");
+    }
+
+    //Metodo de paralisis
+    public void serParalizado() {
+        this.esta_paralizado = true;
+        System.out.println(this.nombre + " ha sido paralizado!");
+    }
+
     // Métodos para manejar la defensa por tanque
     public void recibirDefensa(Personaje tanque) {
         this.siendo_defendido = true;
