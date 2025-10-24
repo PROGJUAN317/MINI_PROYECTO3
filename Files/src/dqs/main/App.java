@@ -94,7 +94,16 @@ public class App {
         batalla.mostrarEquipos();
 
         // Delegar la ejecución del bucle de batalla a BatallaManager (capa de servicio)
-        new dqs.servicio.BatallaManager(batalla, scanner).ejecutarSimulacion();
+        try {
+            new dqs.servicio.BatallaManager(batalla, scanner).ejecutarSimulacion();
+        } catch (NumberFormatException nfe) {
+            System.out.println("Entrada numérica inválida durante la simulación: " + nfe.getMessage());
+        } catch (java.util.NoSuchElementException | IllegalStateException ioe) {
+            System.out.println("Error leyendo la entrada durante la simulación: " + ioe.getMessage());
+        } catch (RuntimeException re) {
+            // Capturar RuntimeException como último recurso: mostrar mensaje conciso sin traza completa
+            System.err.println("Error inesperado durante la simulación: " + re.getClass().getSimpleName() + ": " + re.getMessage());
+        }
     }
     
     /**
