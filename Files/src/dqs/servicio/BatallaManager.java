@@ -1,11 +1,11 @@
 package dqs.servicio;
 
+import dqs.modelo.*;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import dqs.modelo.*;
 
 /**
  * Clase encargada de orquestar la simulación de una batalla.
@@ -421,5 +421,127 @@ public class BatallaManager {
         Personaje[] personajes = new Personaje[heroes.length];
         System.arraycopy(heroes, 0, personajes, 0, heroes.length);
         return personajes;
+    }
+
+    /*
+     * Ejecuta un encuentro automático entre héroes y enemigos.
+     * Los héroes atacan automáticamente al primer enemigo vivo.
+     * Los enemigos actúan automáticamente (si son jefes pueden usar
+     * su habilidad especial). Devuelve true si los héroes ganan.
+     */
+    public boolean ejecutarEncuentroAuto(Heroe[] heroes, Enemigo[] enemigos) {
+        int turno = 1;
+        while (true) {
+            // Turno héroes (ataque automático)
+            for (Heroe h : heroes) {
+                if (h != null && h.esta_vivo()) {
+                    h.atacarEnemigo(enemigos);
+                }
+            }
+
+            // Verificar si héroes ganaron
+            boolean anyEnemigoVivo = false;
+            for (Enemigo e : enemigos) {
+                if (e != null && e.esta_vivo()) { anyEnemigoVivo = true; break; }
+            }
+            if (!anyEnemigoVivo) {
+                System.out.println("Encuentro ganado por los héroes.");
+                return true;
+            }
+
+            // Turno enemigos
+            for (Enemigo e : enemigos) {
+                if (e != null && e.esta_vivo()) {
+                    // Usamos pattern matching para instanceof (Java 16+)
+                    if (e instanceof JefeEnemigo jefe) {
+                        // 30% de probabilidad de usar habilidad especial
+                        double r = Math.random();
+                        Heroe objetivo = e.buscarHeroeVivo(heroes);
+                        if (r < 0.3 && objetivo != null) {
+                            jefe.usarHabilidadEspecial(objetivo);
+                        } else {
+                            e.atacarConProvocacion(convertirHeroesAPersonajes(heroes));
+                        }
+                    } else {
+                        e.atacarConProvocacion(convertirHeroesAPersonajes(heroes));
+                    }
+                }
+            }
+
+            // Verificar si enemigos ganaron
+            boolean anyHeroeVivo = false;
+            for (Heroe h : heroes) {
+                if (h != null && h.esta_vivo()) { anyHeroeVivo = true; break; }
+            }
+            if (!anyHeroeVivo) {
+                System.out.println("Encuentro perdido. Todos los héroes han caído.");
+                return false;
+            }
+
+            turno++;
+            if (turno > 500) {
+                System.out.println("El encuentro se ha extendido demasiado. Se considera derrota técnica.");
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Inicia una batalla por fases (oleadas + jefe por oleada).
+     * Para prototipo usa encuentros automáticos (sin menús interactivos).
+     */
+    public void iniciarBatallaPorFases(Heroe[] heroes, List<Enemigo[]> oleadas, List<Tipo_JefeEnemigo> tiposJefes, boolean curarEntreFases) {
+        if (heroes == null || oleadas == null || oleadas.isEmpty()) {
+            System.out.println("Entradas inválidas para iniciar la batalla por fases.");
+            return;
+        }
+
+        for (int i = 0; i < oleadas.size(); i++) {
+            Enemigo[] oleada = oleadas.get(i);
+            System.out.println("\n--- Inicia la oleada " + (i + 1) + " ---");
+
+            boolean ganado = ejecutarEncuentroAuto(heroes, oleada);
+            if (!ganado) {
+                System.out.println("Derrota en la oleada " + (i + 1));
+                batalla.setBatallaTerminada(true);
+                return;
+            }
+
+            System.out.println("Oleada " + (i + 1) + " completada. Preparando jefe...");
+
+            // Elegir tipo de jefe (si se proporcionó la lista) o usar aleatorio
+            Tipo_JefeEnemigo tipoJefe;
+            if (tiposJefes != null && !tiposJefes.isEmpty()) {
+                tipoJefe = tiposJefes.get(i % tiposJefes.size());
+            } else {
+                Tipo_JefeEnemigo[] valores = Tipo_JefeEnemigo.values();
+                tipoJefe = valores[(int) (Math.random() * valores.length)];
+            }
+
+            JefeEnemigo jefe = JefeFactory.crearJefeAleatorio(tipoJefe);
+            System.out.println("¡Ha aparecido el jefe: " + jefe.getNombre() + "! Tipo: " + tipoJefe.name());
+
+            boolean vencido = ejecutarEncuentroAuto(heroes, new Enemigo[] { jefe });
+            if (!vencido) {
+                System.out.println("Derrota ante el jefe " + tipoJefe.name());
+                batalla.setBatallaTerminada(true);
+                return;
+            }
+
+            if (curarEntreFases) {
+                System.out.println("Aplicando curación parcial a los héroes entre fases...");
+                for (Heroe h : heroes) {
+                    if (h != null && h.esta_vivo()) {
+                        int recuperarHp = (int) (h.getMaxHp() * 0.2);
+                        int recuperarMp = (int) (h.getMaxMp() * 0.2);
+                        h.setHp(Math.min(h.getHp() + recuperarHp, h.getMaxHp()));
+                        h.setMp(Math.min(h.getMp() + recuperarMp, h.getMaxMp()));
+                    }
+                }
+            }
+        }
+
+        System.out.println("\n¡Victoria! Todas las oleadas y jefes derrotados.");
+        batalla.setBatallaTerminada(true);
     }
 }

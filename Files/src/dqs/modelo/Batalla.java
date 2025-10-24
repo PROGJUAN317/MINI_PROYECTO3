@@ -154,6 +154,22 @@ public class Batalla {
         System.out.println("\n¡Equipo de enemigos completo!");
     }
 
+    /**
+     * Genera automáticamente un equipo de enemigos rellenando el arreglo
+     * `equipoEnemigos` con tipos aleatorios y nombres generados.
+     */
+    public void generarEquipoEnemigosAutomatico() {
+        System.out.println("\n=== GENERANDO EQUIPO DE ENEMIGOS AUTOMÁTICO ===");
+        Tipo_Enemigo[] tipos = Tipo_Enemigo.values();
+        for (int i = 0; i < equipoEnemigos.length; i++) {
+            Tipo_Enemigo tipo = tipos[(int) (Math.random() * tipos.length)];
+            Enemigo enemigo = Enemigo.crearEnemigo(tipo, tipo.name() + "_" + (i + 1));
+            equipoEnemigos[i] = enemigo;
+            System.out.println("  >> " + enemigo.toString());
+        }
+        System.out.println("\n¡Equipo de enemigos generado automáticamente!");
+    }
+
     // Método para mostrar los equipos
     public void mostrarEquipos() {
         System.out.println("\n=== EQUIPOS DE BATALLA ===");

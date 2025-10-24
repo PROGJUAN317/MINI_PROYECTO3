@@ -1,6 +1,8 @@
 package dqs.main;
 
 import dqs.modelo.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -48,7 +50,8 @@ public class App {
             System.out.println("2. Mostrar Equipos");
             System.out.println("3. Iniciar Batalla");
             System.out.println("4. Prueba de Mecánicas");
-            System.out.println("5. Salir");
+            System.out.println("5. Iniciar Batalla por Fases (demo)");
+            System.out.println("6. Salir");
             System.out.print("Seleccione una opción: ");
 
             int opcion = leerEntero();
@@ -58,13 +61,99 @@ public class App {
                 case 2 -> batalla.mostrarEquipos();
                 case 3 -> iniciarBatalla();
                 case 4 -> menuPruebaMecanicas();
-                case 5 -> {
+                case 5 -> iniciarBatallaPorFasesDemo();
+                case 6 -> {
                     System.out.println("¡Gracias por jugar! ");
                     System.exit(0);
                 }
                 default -> System.out.println(" Opción inválida. Intente de nuevo.");
             }
         }
+    }
+
+    /**
+     * Demo rápida de Batalla por Fases: construye 2 oleadas simples y 2 tipos de jefes
+     * y llama a BatallaManager.iniciarBatallaPorFases(...) en modo automático.
+     */
+    private static void iniciarBatallaPorFasesDemo() {
+        System.out.println("\n--- DEMO: Batalla por Fases ---");
+
+        Heroe[] heroes = batalla.getEquipoHeroes();
+        // Si no hay héroes creados, crear un equipo de ejemplo
+        boolean hayHeroes = false;
+        for (Heroe h : heroes) if (h != null) { hayHeroes = true; break; }
+        if (!hayHeroes) {
+            System.out.println("No hay héroes en el equipo. Creando un equipo de ejemplo automáticamente...");
+            // Crear 4 héroes de ejemplo (GUERRERO, MAGO, DRUIDA, PALADIN)
+            Tipo_Heroe[] tiposDefault = new Tipo_Heroe[] { Tipo_Heroe.GUERRERO, Tipo_Heroe.MAGO, Tipo_Heroe.DRUIDA, Tipo_Heroe.PALADIN };
+            for (int i = 0; i < 4; i++) {
+                Tipo_Heroe tipo = tiposDefault[i % tiposDefault.length];
+                int hp = tipo.getMinHP() + (int)(Math.random() * (tipo.getMaxHP() - tipo.getMinHP() + 1));
+                int mp = tipo.getMinMP() + (int)(Math.random() * (tipo.getMaxMP() - tipo.getMinMP() + 1));
+                int at = tipo.getMinAtaque() + (int)(Math.random() * (tipo.getMaxAtaque() - tipo.getMinAtaque() + 1));
+                int df = tipo.getMinDefensa() + (int)(Math.random() * (tipo.getMaxDefensa() - tipo.getMinDefensa() + 1));
+                int vel = 10 + (int)(Math.random() * 21); // 10..30
+                Heroe h = new Heroe("Héroe_" + (i + 1), tipo, hp, mp, at, df, vel);
+                batalla.agregarHeroe(h, i);
+                System.out.println("  Creado: " + h.toString());
+            }
+            heroes = batalla.getEquipoHeroes();
+        }
+
+        // Asegurar que haya un equipo de enemigos en `batalla` (generación automática si hace falta)
+        boolean hayEnemigos = false;
+        for (Enemigo e : batalla.getEquipoEnemigos()) if (e != null) { hayEnemigos = true; break; }
+        if (!hayEnemigos) {
+            System.out.println("No hay enemigos en el equipo. Generando equipo de enemigos automáticamente...");
+            batalla.generarEquipoEnemigosAutomatico();
+        }
+
+        // Crear oleadas reutilizando las mismas instancias de `equipoEnemigos` en orden rotativo.
+        List<Enemigo[]> oleadas = new ArrayList<>();
+        Enemigo[] equipoEnemigos = batalla.getEquipoEnemigos();
+        // Recolectar enemigos válidos (no nulos)
+        java.util.List<Enemigo> disponibles = new java.util.ArrayList<>();
+        for (Enemigo e : equipoEnemigos) {
+            if (e != null) disponibles.add(e);
+        }
+
+        if (disponibles.isEmpty()) {
+            // Fallback: crear oleadas simples si, por alguna razón, no hay enemigos
+            Enemigo[] oleada1 = new Enemigo[] {
+                Enemigo.crearEnemigo(Tipo_Enemigo.ORCO, "Orco 1"),
+                Enemigo.crearEnemigo(Tipo_Enemigo.ORCO, "Orco 2")
+            };
+            Enemigo[] oleada2 = new Enemigo[] {
+                Enemigo.crearEnemigo(Tipo_Enemigo.TROLL, "Troll 1"),
+                Enemigo.crearEnemigo(Tipo_Enemigo.GOLEM, "Bandido")
+            };
+            oleadas.add(oleada1);
+            oleadas.add(oleada2);
+        } else {
+            // Configuración por defecto: número de oleadas y tamaño por oleada
+            int numOleadas = 3; // puedes ajustar o convertirlo en parámetro
+            int maxPorOleada = 2;
+
+            int totalDisponibles = disponibles.size();
+            for (int o = 0; o < numOleadas; o++) {
+                int sizeThis = Math.min(maxPorOleada, totalDisponibles);
+                Enemigo[] oleada = new Enemigo[sizeThis];
+                for (int k = 0; k < sizeThis; k++) {
+                    // índice rotativo sobre la lista de disponibles
+                    int idx = (o * maxPorOleada + k) % totalDisponibles;
+                    oleada[k] = disponibles.get(idx);
+                }
+                oleadas.add(oleada);
+            }
+        }
+
+        // Tipos de jefes (opcional)
+        List<Tipo_JefeEnemigo> tiposJefes = new ArrayList<>();
+        tiposJefes.add(Tipo_JefeEnemigo.GIGANTE);
+        tiposJefes.add(Tipo_JefeEnemigo.REY_DRAGON);
+
+        // Ejecutar batalla por fases (curación entre fases = true para demo)
+        new dqs.servicio.BatallaManager(batalla, scanner).iniciarBatallaPorFases(heroes, oleadas, tiposJefes, true);
     }
 
     /**

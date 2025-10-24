@@ -18,6 +18,10 @@ public abstract class Personaje {
     protected Personaje defensor = null;
     public String getNombre() { return nombre; }
     public int getHp() { return hp; }
+    // Valor máximo de HP (se inicializa con el HP inicial)
+    protected int maxHp;
+    // Valor máximo de MP (se inicializa con el MP inicial)
+    protected int maxMp;
     public int getMp() { return mp; }
     public int getAtaque() { return ataque; }
     public int getDefensa() { return defensa; }
@@ -33,12 +37,18 @@ public abstract class Personaje {
     public Personaje(String nombre, int hp, int mp, int ataque, int defensa, int velocidad) {
         this.nombre = nombre;
         this.hp = hp;
+        this.maxHp = hp;
         this.mp = mp;
+        this.maxMp = mp;
         this.ataque = ataque;
         this.defensa = defensa;
         this.velocidad = velocidad;
         this.esta_vivo = hp > 0;
     }
+
+    // Getters para los máximos (útiles para curación entre fases)
+    public int getMaxHp() { return maxHp; }
+    public int getMaxMp() { return maxMp; }
     @SuppressWarnings("unused")
     public void recibir_daño(int cantidad){
         int dañoFinal;
