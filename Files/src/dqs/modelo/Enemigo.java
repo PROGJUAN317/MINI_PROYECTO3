@@ -1,6 +1,6 @@
 package dqs.modelo;
 
-public class Enemigo extends Personaje implements Agresivo {
+public class Enemigo extends Personaje implements Agresivo, Jefe {
 	private final Tipo_Enemigo tipo;
 
 	public Enemigo(String nombre, int hp, int mp, int ataque, int defensa, int velocidad, Tipo_Enemigo tipo) {
@@ -101,7 +101,30 @@ public class Enemigo extends Personaje implements Agresivo {
     }
 
     @Override
+    public int TurnosParaAtacar() {
+        byte turnos = 2;
+        if (turnos >= 0) {
+            turnos--;
+        } else if (turnos < 0) {
+            turnos = 2;
+        }
+        return turnos; // Por ejemplo, el jefe ataca cada 2 turnos
+    }
+
+    
+    public void usarHabilidadEspecial() {
+        // Implementación requerida por la interfaz Jefe; comportamiento por defecto sin objetivo explícito.
+        System.out.println(this.nombre + " (" + tipo.name() + ") usa su habilidad especial.");
+    }
+
+    // Sobrecarga que permite aplicar la habilidad especial a un objetivo específico
+    @Override
     public void usarHabilidadEspecial(Personaje objetivo) {
+        if (objetivo == null) {
+            // Si no hay objetivo, usar la versión por defecto
+            usarHabilidadEspecial();
+            return;
+        }
         int daño = this.ataque * 2 - objetivo.getDefensa();
         if (daño < 1) daño = 1; // Daño mínimo de 1
         
@@ -126,5 +149,12 @@ public class Enemigo extends Personaje implements Agresivo {
          " | Ataque: " + ataque +
          " | Defensa: " + defensa +
          " | Velocidad: " + velocidad;
+    }
+
+    @Override
+    public void AtacarATodos() {
+        // Si deseas un objetivo arreglo, deberías pasarlo; aquí asumimos que atacará a un conjunto global
+        // Implementación por defecto: no hace nada si no hay contexto. Puedes llamar a atacarAleatorio en un bucle
+        System.out.println(this.nombre + " intenta usar AtacarATodos(), pero no hay contexto de objetivos.");
     }
 }
