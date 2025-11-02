@@ -1,9 +1,9 @@
-package dqs.main;
+/*package dqs.main;
 
 import java.util.Scanner;
 
 
-import dqs.modelo.*;
+import dqs.modelos.*;
 
 /**
  * Punto de entrada y capa de interacción (CLI) del juego.
@@ -12,7 +12,7 @@ import dqs.modelo.*;
  * contiene menús y pruebas rápidas. La lógica de batalla usa la clase
  * `Batalla` (modelo) y las entidades `Heroe` y `Enemigo` del paquete
  * `dqs.modelo`.
- */
+ 
 public class App {
     private static final Scanner scanner = new Scanner(System.in);
     private static final Batalla batalla = new Batalla();
@@ -23,7 +23,7 @@ public class App {
      *
      * Efectos secundarios: usa el `Scanner` estático para leer entrada
      * del usuario y delega en `mostrarMenuPrincipal()`.
-     */
+     
     public static void main(String[] args) {
         System.out.println("  ¡Bienvenido al Sistema de Batallas RPG!");
         System.out.println("==========================================");
@@ -42,7 +42,7 @@ public class App {
      * - Salir
      *
      * Lee la opción con `leerEntero()` y delega en los métodos correspondientes.
-     */
+     
     private static void mostrarMenuPrincipal() {
         while (true) {
             System.out.println("\n=== MENÚ PRINCIPAL ===");
@@ -74,7 +74,7 @@ public class App {
      *
      * Verifica precondiciones (al menos un héroe y un enemigo). Si se cumple,
      * muestra los equipos y delega la ejecución en `BatallaManager`.
-     */
+     
     private static void iniciarBatalla() {
         // Verificar que ambos equipos tengan al menos un miembro
         boolean hayHeroes = false, hayEnemigos = false;
@@ -120,22 +120,24 @@ public class App {
     /**
      * Menú para crear equipos: opción simple para crear todos los héroes
      * o enemigos, o crear individualmente de forma interactiva.
-     */
+     
     private static void menuCrearEquipos() {
         System.out.println("\n=== CREAR EQUIPOS ===");
         System.out.println("1. Crear equipo de héroes (completo)");
         System.out.println("2. Crear equipo de enemigos (completo)");
         System.out.println("3. Crear héroe en una posición (interactivo)");
         System.out.println("4. Crear enemigo en una posición (interactivo)");
-        System.out.println("5. Volver");
+        System.out.println("5. Crear equipo de héroes por defecto (para pruebas)");
+    System.out.println("6. Volver");
         System.out.print("Seleccione: ");
-
         int op = leerEntero();
         switch (op) {
             case 1 -> batalla.crearEquipoHeroes();
             case 2 -> batalla.crearEquipoEnemigos();
             case 3 -> batalla.crearHeroeInteractivo(scanner);
             case 4 -> batalla.crearEnemigoInteractivo(scanner);
+            case 5 -> batalla.crearEquipoHeroesPorDefecto();
+            case 6 -> System.out.println("Volviendo al menú principal.");
             default -> System.out.println("Volviendo al menú principal.");
         }
     }
@@ -144,7 +146,7 @@ public class App {
      * Menú para ejecutar pruebas rápidas de mecánicas concretas: defensa
      * de tanque, provocación y curación. Útil para depuración y ver
      * el comportamiento de los métodos en `Heroe`/`Enemigo`.
-     */
+     
     private static void menuPruebaMecanicas() {
         System.out.println("\n=== PRUEBA DE MECÁNICAS ===");
         System.out.println("1. Prueba de Defensa del Tanque");
@@ -167,7 +169,7 @@ public class App {
      * Prueba de la mecánica de defensa por tanque:
      *  - Crea un tanque (Heroe), un mago (Heroe) y un enemigo.
      *  - El tanque defiende al mago y se muestra la reducción de daño.
-     */
+     
     private static void pruebaDefensaTanque() {
         System.out.println("\n PRUEBA DE DEFENSA DEL TANQUE ");
         
@@ -194,7 +196,7 @@ public class App {
      *  - Crea un tanque y provoca a un enemigo.
      *  - Verifica que `atacarConProvocacion` haga que el enemigo ataque
      *    al provocador cuando corresponda.
-     */
+     
     private static void pruebaProvocacion() {
         System.out.println("\n PRUEBA DE PROVOCACIÓN ");
         
@@ -219,7 +221,7 @@ public class App {
      * Prueba de la mecánica de curación:
      *  - Crea un sanador y un héroe con HP bajo y muestra el efecto de
      *    `curar(herido)`.
-     */
+     
     private static void pruebaCuracion() {
         System.out.println("\n PRUEBA DE CURACIÓN ");
         
@@ -253,7 +255,7 @@ public class App {
      * termina la aplicación de forma limpia.
      *
      * Reintenta en caso de formato inválido.
-     */
+     
     private static int leerEntero() {
         while (true) {
             try {
@@ -267,6 +269,43 @@ public class App {
             } catch (NumberFormatException e) {
                 System.out.print(" Ingrese un número válido: ");
             }
+        }
+    }
+}
+*/
+
+package dqs.main;
+import dqs.vista.*;
+import javax.swing.SwingUtilities;
+
+/**
+ * Punto de entrada minimal que lanza la vista gráfica principal.
+ *
+ * Esta clase delega la responsabilidad de construir y mostrar la ventana
+ * en {@link dqs.vista.VistaIniciarBatallaNueva}. Se asegura de que la
+ * creación de la UI ocurra en el Event Dispatch Thread usando
+ * {@link SwingUtilities#invokeLater(Runnable)}.
+ */
+public class App {
+
+    public static void main(String[] args) {
+        System.out.println("  ¡Bienvenido al Sistema de Batallas RPG!");
+        System.out.println("==========================================");
+
+        mostrarVistaIniciarBatallaNueva();
+    }
+
+    /**
+     * Crea y muestra la vista principal en el EDT. Cualquier excepción se
+     * imprime en la salida de error para facilitar depuración.
+     */
+    @SuppressWarnings("CallToPrintStackTrace")
+    private static void mostrarVistaIniciarBatallaNueva() {
+        try {
+            SwingUtilities.invokeLater(() -> new VistaIniciarBatallaNueva());
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error al iniciar la vista: " + e.getMessage());
         }
     }
 }
