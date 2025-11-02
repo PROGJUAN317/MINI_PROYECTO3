@@ -16,11 +16,28 @@ public class BatallaManager {
     private final Scanner scanner;
 
     public BatallaManager(Batalla batalla, Scanner scanner) {
+        super();
         this.batalla = batalla;
         this.scanner = scanner;
     }
-
-    /** Ejecuta la simulación de la batalla (bucle principal). */
+    /**
+     * Crea un manager para orquestar la simulación de una batalla.
+     *
+     * @param batalla instancia del modelo que contiene equipos y estado
+     * @param scanner  scanner compartido por la UI para leer entradas del usuario
+     */
+    
+    /**
+     * Ejecuta la simulación de la batalla (bucle principal).
+     *
+     * El método alterna entre turnos de héroes (interactivo/manual) y
+     * turnos de enemigos (automatizados). Para los enemigos se utiliza
+     * un scheduler que introduce pequeñas pausas entre acciones para
+     * mejorar la legibilidad en consola.
+     *
+     * El bucle termina cuando `batalla.isBatallaTerminada()` es true o
+     * se alcanza un límite de turnos para evitar bucles infinitos.
+     */
     public void ejecutarSimulacion() {
         int turno = 1;
 
@@ -82,6 +99,12 @@ public class BatallaManager {
     }
 
     // Helpers (trasladados desde App para mantener el comportamiento)
+
+    /**
+     * Imprime por consola el estado actual de héroes y enemigos vivos.
+     * Muestra nombre, tipo, HP y MP para facilitar la toma de decisiones
+     * por parte del usuario en los turnos manuales.
+     */
     private void mostrarEstadoActual() {
         System.out.println("\n ESTADO ACTUAL DE LA BATALLA:");
 
@@ -104,6 +127,11 @@ public class BatallaManager {
         }
     }
 
+    /**
+     * Itera por cada héroe vivo y solicita la acción a realizar (menú
+     * interactivo). Si la comprobación de victoria se cumple durante
+     * el proceso, el bucle se interrumpe.
+     */
     private void turnoHeroesManual() {
         for (Heroe heroe : batalla.getEquipoHeroes()) {
             if (heroe != null && heroe.esta_vivo()) {
@@ -117,6 +145,14 @@ public class BatallaManager {
         }
     }
 
+    /**
+     * Muestra el menú de acciones disponible para un héroe concreto,
+     * adaptando las opciones según el tipo del héroe (Guerrero,
+     * Paladín, Druida, etc.). Repite hasta que se ejecuta una acción
+     * válida que consume el turno.
+     *
+     * @param heroe el héroe que va a actuar
+     */
     private void mostrarMenuAccionHeroe(Heroe heroe) {
         while (true) {
             System.out.println("\n¿Qué acción desea realizar?");
@@ -149,6 +185,12 @@ public class BatallaManager {
         }
     }
 
+    /**
+     * Ejecuta la acción elegida por el usuario para el héroe.
+     *
+     * @return true si la acción fue válida y el héroe consumió su turno;
+     *         false si la opción fue inválida para que el menú la repita.
+     */
     private boolean ejecutarAccionHeroe(Heroe heroe, int opcion) {
         switch (opcion) {
             case 1 -> {
@@ -200,6 +242,10 @@ public class BatallaManager {
         return false;
     }
 
+    /**
+     * Solicita seleccionar un enemigo y ejecuta el ataque del héroe sobre
+     * ese objetivo.
+     */
     private boolean atacarConHeroe(Heroe heroe) {
         System.out.println("\n Seleccione el enemigo a atacar:");
         Enemigo objetivo = seleccionarEnemigo();
@@ -210,6 +256,10 @@ public class BatallaManager {
         return false;
     }
 
+    /**
+     * Permite que el héroe defienda a un aliado: delega en la mecánica
+     * implementada en la clase `Heroe`.
+     */
     private boolean defenderConHeroe(Heroe heroe) {
         System.out.println("\n Seleccione el aliado a defender:");
         Heroe aliado = seleccionarHeroe();
@@ -222,6 +272,9 @@ public class BatallaManager {
         return false;
     }
 
+    /**
+     * Aplica la acción de provocar sobre un enemigo seleccionado.
+     */
     private boolean provocarConHeroe(Heroe heroe) {
         System.out.println("\n Seleccione el enemigo a provocar:");
         Enemigo enemigo = seleccionarEnemigo();
@@ -232,6 +285,10 @@ public class BatallaManager {
         return false;
     }
 
+    /**
+     * Solicita seleccionar un aliado para curar y ejecuta la habilidad
+     * de curación del héroe (si procede según su clase).
+     */
     private boolean curarConHeroe(Heroe heroe) {
         System.out.println("\n Seleccione el aliado a curar:");
         Heroe aliado = seleccionarHeroe();
@@ -242,6 +299,9 @@ public class BatallaManager {
         return false;
     }
 
+    /**
+     * Restaura mana a un aliado según la habilidad del héroe.
+     */
     private boolean restaurarManaConHeroe(Heroe heroe) {
         System.out.println("\n Seleccione el aliado para restaurar mana:");
         Heroe aliado = seleccionarHeroe();
@@ -252,6 +312,10 @@ public class BatallaManager {
         return false;
     }
 
+    /**
+     * Elimina efectos negativos de un aliado seleccionado, delegando a
+     * la implementación del héroe.
+     */
     private boolean eliminarEfectoConHeroe(Heroe heroe) {
         System.out.println("\n Seleccione el aliado para eliminar efectos negativos:");
         Heroe aliado = seleccionarHeroe();
@@ -262,6 +326,9 @@ public class BatallaManager {
         return false;
     }
 
+    /**
+     * Revive a un aliado caído (si la clase del héroe lo permite).
+     */
     private boolean revivirConHeroe(Heroe heroe) {
         System.out.println("\n Seleccione el aliado a revivir:");
         Heroe aliado = seleccionarHeroeMuerto();
@@ -272,6 +339,10 @@ public class BatallaManager {
         return false;
     }
 
+    /**
+     * Muestra la lista de enemigos vivos y devuelve la selección del
+     * usuario. Si el usuario elige cancelar, retorna null.
+     */
     private Enemigo seleccionarEnemigo() {
         System.out.println("Enemigos disponibles:");
         int contador = 1;
@@ -303,6 +374,10 @@ public class BatallaManager {
         return null;
     }
 
+    /**
+     * Muestra la lista de héroes vivos y devuelve el seleccionado; si
+     * el usuario cancela retorna null.
+     */
     private Heroe seleccionarHeroe() {
         System.out.println("Héroes disponibles:");
         int contador = 1;
@@ -334,6 +409,11 @@ public class BatallaManager {
         return null;
     }
 
+    /**
+     * Muestra la lista de héroes caídos (no vivos) para operaciones como
+     * revivir. Retorna null si no hay candidatos o si el usuario
+     * cancela.
+     */
     private Heroe seleccionarHeroeMuerto() {
         System.out.println("Héroes caídos:");
         int contador = 1;
@@ -371,6 +451,11 @@ public class BatallaManager {
         return null;
     }
 
+    /**
+     * Lee un entero de la entrada usando el `Scanner` compartido.
+     * Si la entrada se cierra devuelve -1 para que el caller lo
+     * maneje (en lugar de cerrar la JVM directamente).
+     */
     private int leerEntero() {
         while (true) {
             try {
@@ -387,6 +472,11 @@ public class BatallaManager {
         }
     }
 
+    /**
+     * Comprueba si uno de los bandos ha perdido a todos sus miembros
+     * vivos. En caso de victoria marca la batalla como terminada y
+     * devuelve true.
+     */
     private boolean verificarVictoria() {
         boolean heroesVivos = false, enemigosVivos = false;
 
@@ -417,6 +507,10 @@ public class BatallaManager {
         return false;
     }
 
+    /**
+     * Convierte un arreglo de `Heroe` a `Personaje[]` para reutilizar
+     * APIs que trabajen con el tipo base `Personaje`.
+     */
     private Personaje[] convertirHeroesAPersonajes(Heroe[] heroes) {
         Personaje[] personajes = new Personaje[heroes.length];
         System.arraycopy(heroes, 0, personajes, 0, heroes.length);
