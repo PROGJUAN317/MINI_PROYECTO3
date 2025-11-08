@@ -111,8 +111,20 @@ public class Enemigo extends Personaje implements Agresivo, Jefe {
         return turnos; // Por ejemplo, el jefe ataca cada 2 turnos
     }
 
+    
+    public void usarHabilidadEspecial() {
+        // Implementación requerida por la interfaz Jefe; comportamiento por defecto sin objetivo explícito.
+        System.out.println(this.nombre + " (" + tipo.name() + ") usa su habilidad especial.");
+    }
+
+    // Sobrecarga que permite aplicar la habilidad especial a un objetivo específico
     @Override
     public void usarHabilidadEspecial(Personaje objetivo) {
+        if (objetivo == null) {
+            // Si no hay objetivo, usar la versión por defecto
+            usarHabilidadEspecial();
+            return;
+        }
         int daño = this.ataque * 2 - objetivo.getDefensa();
         if (daño < 1) daño = 1; // Daño mínimo de 1
         

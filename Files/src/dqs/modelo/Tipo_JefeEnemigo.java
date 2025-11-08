@@ -7,12 +7,12 @@ public enum Tipo_JefeEnemigo {
     GIGANTE(200, 350, 30, 80, 450, 90, 250, 500, 100, 250, "Una criatura enorme con fuerza descomunal."),
     DEMONIO(350, 600, 200, 300, 600, 120, 400, 700, 250, 450, "Ser infernal con habilidades mágicas devastadoras.");
 
-    private int minHp, maxHp;
-    private int minMp, maxMp;
-    private int minAtaque, maxAtaque;
-    private int minDefensa, maxDefensa;
-    private int minVelocidad, maxVelocidad;
-    private String descripcion;
+    private final int minHp, maxHp;
+    private final int minMp, maxMp;
+    private final int minAtaque, maxAtaque;
+    private final int minDefensa, maxDefensa;
+    private final int minVelocidad, maxVelocidad;
+    private final String descripcion;
 
     private Tipo_JefeEnemigo(int minHp, int maxHp, int minMp, int maxMp, int minAtaque, int maxAtaque, int minDefensa, int maxDefensa, int minVelocidad, int maxVelocidad, String descripcion) {
         this.minHp = minHp;

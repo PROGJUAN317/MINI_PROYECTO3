@@ -65,8 +65,11 @@ public class Batalla {
         try {
             String line = scanner.nextLine();
             posicion = Integer.parseInt(line) - 1;
-        } catch (Exception e) {
+        } catch (NumberFormatException nfe) {
             System.out.println(" Posición inválida (entrada no numérica).");
+            return;
+        } catch (java.util.NoSuchElementException | IllegalStateException ioe) {
+            System.out.println(" Error leyendo la entrada: " + ioe.getMessage());
             return;
         }
 
@@ -81,8 +84,11 @@ public class Batalla {
             try {
                 String tline = scanner.nextLine();
                 tipoIndex = Integer.parseInt(tline) - 1;
-            } catch (Exception ex) {
+            } catch (NumberFormatException nfe) {
                 System.out.println(" Tipo inválido (entrada no numérica).");
+                return;
+            } catch (java.util.NoSuchElementException | IllegalStateException ioe) {
+                System.out.println(" Error leyendo la entrada: " + ioe.getMessage());
                 return;
             }
 
@@ -124,8 +130,11 @@ public class Batalla {
         try {
             String line = scanner.nextLine();
             posicion = Integer.parseInt(line) - 1;
-        } catch (Exception e) {
+        } catch (NumberFormatException nfe) {
             System.out.println(" Posición inválida (entrada no numérica).");
+            return;
+        } catch (java.util.NoSuchElementException | IllegalStateException ioe) {
+            System.out.println(" Error leyendo la entrada: " + ioe.getMessage());
             return;
         }
 
