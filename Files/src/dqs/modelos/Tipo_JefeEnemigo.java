@@ -1,4 +1,4 @@
-package dqs.modelo;
+package dqs.modelos;
 
 public enum Tipo_JefeEnemigo {
     REY_DRAGON (300, 500, 100, 200, 500, 100, 300, 600, 200, 400, "Un dragón feroz que escupe fuego."),

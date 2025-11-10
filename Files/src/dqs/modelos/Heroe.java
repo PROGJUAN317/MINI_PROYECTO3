@@ -1,4 +1,4 @@
-package dqs.modelo;
+package dqs.modelos;
 
 import java.util.Scanner;
 
@@ -80,10 +80,12 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
 
     public void mostrarEstado() {
         System.out.println("\n " + nombre + " [" + tipo.name() + "]");
-        System.out.println("HP: " + hp + " | MP: " + mp +
-                           " | Ataque: " + ataque + " | Defensa: " + defensa +
+        System.out.println("HP: " + hp + "\n"+ " MP: " + mp + "\n" +
+                           " | Ataque: " + ataque +"\n" + " | Defensa: " + defensa + "\n" +
                            " | Velocidad: " + velocidad);
-        System.out.println("Descripción: " + tipo.getDescripcion());
+        System.out.println("""
+                           
+                           Descripción: """ + tipo.getDescripcion());
         System.out.println("--------------------------------------");
     }
 
@@ -112,6 +114,7 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
         }
     }
 
+    // Método para defender a un aliado
     @Override
     public void defender(Personaje aliado) {
         if (tipo == Tipo_Heroe.GUERRERO || tipo == Tipo_Heroe.PALADIN) {
@@ -223,6 +226,12 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
             if (!objetivo.esta_vivo() && mp >= 25) {
                 mp -= 25;
                 objetivo.setHp(50);
+                // Asegurar que el personaje revivido pueda actuar: limpiar efectos y marcas
+                objetivo.turnosParalisis = 0;
+                objetivo.turnosSueno = 0;
+                objetivo.removerProvocacion();
+                objetivo.removerDefensa();
+                objetivo.esta_vivo = true; // asegurar bandera activa
                 System.out.println(nombre + " ha revivido a " + objetivo.getNombre() + " con 50 puntos de vida.");
             } else if(objetivo.esta_vivo()) {
                 System.out.println(objetivo.getNombre() + " ya está vivo.");
@@ -262,14 +271,12 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
 
     @Override
     public void LanzaHechizoSueño(Personaje objetivo) {
+        // Ahora el hechizo de sueño aplica el estado de sueño por 3 turnos
         if (tipo == Tipo_Heroe.MAGO || tipo == Tipo_Heroe.DRUIDA) {
             int costoMana = 20;
             if (mp >= costoMana) {
                 mp -= costoMana;
-                int dañoHechizo = 40;
-                objetivo.recibir_daño(dañoHechizo);
-                System.out.println(nombre + " lanza el hechizo Sueño a " + objetivo.getNombre() +
-                                 " causando " + dañoHechizo + " puntos de daño.");
+                objetivo.aplicarSueno(3); // dormir 3 turnos
             } else {
                 System.out.println(nombre + " no tiene suficiente MP para lanzar el hechizo.");
             }
@@ -299,13 +306,12 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
     //Metodo para paralizar a un enemigo
     @Override
     public void LanzaHechizoParalisis(Personaje objetivo) {
+        // La parálisis ahora aplica 1 turno de incapacidad mediante aplicarParalisis
         if (tipo == Tipo_Heroe.MAGO || tipo == Tipo_Heroe.DRUIDA) {
             int costoMana = 25;
             if (mp >= costoMana) {
                 mp -= costoMana;
-                System.out.println(nombre + " lanza el hechizo Parálisis a " + objetivo.getNombre() +
-                                 ", paralizándolo por un turno.");
-                objetivo.serParalizado();
+                objetivo.aplicarParalisis(1);
             } else {
                 System.out.println(nombre + " no tiene suficiente MP para lanzar el hechizo.");
             }
@@ -359,5 +365,10 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
          " | Ataque: " + ataque +
          " | Defensa: " + defensa +
          " | Velocidad: " + velocidad;
+    }
+
+    public int getPorcentajeHP() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getPorcentajeHP'");
     }
 }
