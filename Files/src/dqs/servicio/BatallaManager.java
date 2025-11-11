@@ -5,7 +5,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import dqs.modelo.*;
+import dqs.modelos.*;
 
 /**
  * Clase encargada de orquestar la simulación de una batalla.
@@ -16,7 +16,6 @@ public class BatallaManager {
     private final Scanner scanner;
 
     public BatallaManager(Batalla batalla, Scanner scanner) {
-        super();
         this.batalla = batalla;
         this.scanner = scanner;
     }
@@ -67,7 +66,19 @@ public class BatallaManager {
                     Enemigo eFinal = enemigo; // para usar dentro de la lambda
                     scheduler.schedule(() -> {
                         System.out.println("\n" + eFinal.getNombre() + " está actuando...");
-                        eFinal.atacarConProvocacion(convertirHeroesAPersonajes(batalla.getEquipoHeroes()));
+
+                        // Si el enemigo es un jefe con comportamiento especial, delegar en su actuar
+                        try {
+                            if (eFinal instanceof dqs.modelos.JefeEnemigo) {
+                                // JefeEnemigo.actuar maneja cooldowns y usa la habilidad especial cada N turnos
+                                ((dqs.modelos.JefeEnemigo)eFinal).actuar(batalla.getEquipoHeroes());
+                            } else {
+                                // Enemigos normales atacan a un héroe vivo aleatorio
+                                eFinal.atacarAleatorio(batalla.getEquipoHeroes());
+                            }
+                        } catch (Exception ex) {
+                            System.out.println("Error al ejecutar acción del enemigo: " + ex.getMessage());
+                        }
                     }, delayMs, TimeUnit.MILLISECONDS);
                     delayMs += stepMs;
                 }
@@ -174,7 +185,16 @@ public class BatallaManager {
                 System.out.println("8. Revivir Aliado");
             }
 
-            System.out.println("9. Pasar Turno");
+            if (heroe.getTipo() == Tipo_Heroe.MAGO || heroe.getTipo() == Tipo_Heroe.DRUIDA) {
+                System.out.println("9. Lanzar Hechizo de sueño");
+            }
+
+            if (heroe.getTipo() == Tipo_Heroe.MAGO){
+                System.out.println("10. Lanzar Hechizo de refuerzo");
+                System.out.println("11. Lanzar Hechizo de parálisis");
+            }
+
+            System.out.println("12. Pasar Turno");
             System.out.print("Seleccione una opción: ");
 
             int opcion = leerEntero();
@@ -191,56 +211,75 @@ public class BatallaManager {
      * @return true si la acción fue válida y el héroe consumió su turno;
      *         false si la opción fue inválida para que el menú la repita.
      */
-    private boolean ejecutarAccionHeroe(Heroe heroe, int opcion) {
-        switch (opcion) {
-            case 1 -> {
-                return atacarConHeroe(heroe);
+private boolean ejecutarAccionHeroe(Heroe heroe, int opcion) {
+    switch (opcion) {
+        case 1 -> {
+            return atacarConHeroe(heroe);
+        }
+        case 2 -> {
+            if (heroe.getTipo() == Tipo_Heroe.GUERRERO || heroe.getTipo() == Tipo_Heroe.PALADIN) {
+                return defenderConHeroe(heroe);
             }
-            case 2 -> {
-                if (heroe.getTipo() == Tipo_Heroe.GUERRERO || heroe.getTipo() == Tipo_Heroe.PALADIN) {
-                    return defenderConHeroe(heroe);
-                }
+        }
+        case 3 -> {
+            if (heroe.getTipo() == Tipo_Heroe.GUERRERO || heroe.getTipo() == Tipo_Heroe.PALADIN) {
+                return provocarConHeroe(heroe);
             }
-            case 3 -> {
-                if (heroe.getTipo() == Tipo_Heroe.GUERRERO || heroe.getTipo() == Tipo_Heroe.PALADIN) {
-                    return provocarConHeroe(heroe);
-                }
-            }
-            case 4 -> {
-                if (heroe.getTipo() == Tipo_Heroe.GUERRERO || heroe.getTipo() == Tipo_Heroe.PALADIN) {
-                    heroe.aumentarDefensa(10);
-                    return true;
-                }
-            }
-            case 5 -> {
-                if (heroe.getTipo() == Tipo_Heroe.DRUIDA || heroe.getTipo() == Tipo_Heroe.PALADIN) {
-                    return curarConHeroe(heroe);
-                }
-            }
-            case 6 -> {
-                if (heroe.getTipo() == Tipo_Heroe.DRUIDA) {
-                    return restaurarManaConHeroe(heroe);
-                }
-            }
-            case 7 -> {
-                if (heroe.getTipo() == Tipo_Heroe.DRUIDA || heroe.getTipo() == Tipo_Heroe.PALADIN) {
-                    return eliminarEfectoConHeroe(heroe);
-                }
-            }
-            case 8 -> {
-                if (heroe.getTipo() == Tipo_Heroe.PALADIN) {
-                    return revivirConHeroe(heroe);
-                }
-            }
-            case 9 -> {
-                System.out.println(heroe.getNombre() + " pasa su turno.");
+        }
+        case 4 -> {
+            if (heroe.getTipo() == Tipo_Heroe.GUERRERO || heroe.getTipo() == Tipo_Heroe.PALADIN) {
+                heroe.aumentarDefensa(10);
                 return true;
             }
         }
-
-        System.out.println(" Opción inválida o no disponible para este tipo de héroe.");
-        return false;
+        case 5 -> {
+            if (heroe.getTipo() == Tipo_Heroe.DRUIDA || heroe.getTipo() == Tipo_Heroe.PALADIN) {
+                return curarConHeroe(heroe);
+            }
+        }
+        case 6 -> {
+            if (heroe.getTipo() == Tipo_Heroe.DRUIDA) {
+                return restaurarManaConHeroe(heroe);
+            }
+        }
+        case 7 -> {
+            if (heroe.getTipo() == Tipo_Heroe.DRUIDA || heroe.getTipo() == Tipo_Heroe.PALADIN) {
+                return eliminarEfectoConHeroe(heroe);
+            }
+        }
+        case 8 -> {
+            if (heroe.getTipo() == Tipo_Heroe.PALADIN) {
+                return revivirConHeroe(heroe);
+            }
+        }
+        case 9 -> {
+            // Para Druida: hechizo de sueño; para Mago: refuerzo (según menú)
+            if (heroe.getTipo() == Tipo_Heroe.DRUIDA || heroe.getTipo() == Tipo_Heroe.MAGO) {
+                return LanzaHechizoDeSueño(heroe);
+            }
+        }
+        case 10 -> {
+            if (heroe.getTipo() == Tipo_Heroe.MAGO) {
+                return LanzaHechizoRefuerzo(heroe);
+            }
+        }
+        case 11 -> {
+            if (heroe.getTipo() == Tipo_Heroe.MAGO) {
+                return LanzaHechizoParalisis(heroe);
+            }
+        }
+        case 12 -> {
+            System.out.println("\nHas decidido pasar el turno.");
+            return true;
+            }
+        default -> {
+            // caído por defecto si la opción no coincide
+        }
     }
+
+    System.out.println(" Opción inválida o no disponible para este tipo de héroe.");
+    return false;
+}
 
     /**
      * Solicita seleccionar un enemigo y ejecuta el ataque del héroe sobre
@@ -338,6 +377,43 @@ public class BatallaManager {
         }
         return false;
     }
+
+    //Aumenta el ataque de un aliado
+    private boolean LanzaHechizoRefuerzo(Heroe heroe){
+        System.out.println("\n Seleccione el aliado a reforzar:");
+        Heroe aliado = seleccionarHeroe();
+        if (aliado != null){
+            heroe.LanzaHechizoRefuerzo(aliado);
+            return true;
+        }
+        return false;
+    }
+
+    /* 
+     * deja lanzar hechizo de sueño
+     */
+    private boolean LanzaHechizoDeSueño(Heroe heroe){
+        System.out.println("\n Seleccionar el enemigo a dormir:");
+        Enemigo objetivo = seleccionarEnemigo();
+        if (objetivo != null){
+            heroe.LanzaHechizoSueño(objetivo);
+            return true;
+        }
+        return false;
+    }
+
+    // Método para lanzar parálisis desde el manager (para magos)
+    private boolean LanzaHechizoParalisis(Heroe heroe){
+        System.out.println("\n Seleccionar el enemigo a paralizar:");
+        Enemigo objetivo = seleccionarEnemigo();
+        if (objetivo != null){
+            heroe.LanzaHechizoParalisis(objetivo);
+            return true;
+        }
+        return false;
+    }
+
+
 
     /**
      * Muestra la lista de enemigos vivos y devuelve la selección del
@@ -511,6 +587,7 @@ public class BatallaManager {
      * Convierte un arreglo de `Heroe` a `Personaje[]` para reutilizar
      * APIs que trabajen con el tipo base `Personaje`.
      */
+    @SuppressWarnings("unused")
     private Personaje[] convertirHeroesAPersonajes(Heroe[] heroes) {
         Personaje[] personajes = new Personaje[heroes.length];
         System.arraycopy(heroes, 0, personajes, 0, heroes.length);

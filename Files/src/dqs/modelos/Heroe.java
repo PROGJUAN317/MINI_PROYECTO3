@@ -366,4 +366,9 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
          " | Defensa: " + defensa +
          " | Velocidad: " + velocidad;
     }
+
+    public int getPorcentajeHP() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getPorcentajeHP'");
+    }
 }

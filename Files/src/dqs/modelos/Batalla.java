@@ -16,13 +16,13 @@ public class Batalla {
     }
 
     // metodos para agregar heroes y enemigos al equipo
-    public void agregarHeroe(Heroe heroe, int posicion) {
-        if (posicion >= 0 && posicion < equipoHeroes.length) {
-            equipoHeroes[posicion] = heroe;
-        } else {
-            throw new IllegalArgumentException("Posición inválida para el equipo de héroes.");
-        }
-    }
+    // public void agregarHeroe(Heroe heroe, int posicion) {
+    //     if (posicion >= 0 && posicion < equipoHeroes.length) {
+    //         equipoHeroes[posicion] = heroe;
+    //     } else {
+    //         throw new IllegalArgumentException("Posición inválida para el equipo de héroes.");
+    //     }
+    // }
 
     public void agregarEnemigo(Enemigo enemigo, int posicion) {
         if (posicion >= 0 && posicion < equipoEnemigos.length) {
@@ -33,15 +33,15 @@ public class Batalla {
     }
 
     // Método para crear y agregar héroes directamente al arreglo
-    public void crearYAgregarHeroe(int posicion) {
-        if (posicion >= 0 && posicion < equipoHeroes.length) {
-            System.out.println("\n=== Creando héroe para la posición " + (posicion + 1) + " ===");
-            equipoHeroes[posicion] = Heroe.crearHeroePorConsola();
-            System.out.println("¡Héroe agregado exitosamente!");
-        } else {
-            throw new IllegalArgumentException("Posición inválida para el equipo de héroes.");
-        }
-    }
+    // public void crearYAgregarHeroe(int posicion) {
+    //     if (posicion >= 0 && posicion < equipoHeroes.length) {
+    //         System.out.println("\n=== Creando héroe para la posición " + (posicion + 1) + " ===");
+    //         equipoHeroes[posicion] = Heroe.crearHeroePorConsola();
+    //         System.out.println("¡Héroe agregado exitosamente!");
+    //     } else {
+    //         throw new IllegalArgumentException("Posición inválida para el equipo de héroes.");
+    //     }
+    // }
 
     // Método para crear y agregar enemigos directamente al arreglo
     public void crearYAgregarEnemigo(int posicion) {
@@ -104,13 +104,13 @@ public class Batalla {
     }
 
     // Método para crear todo el equipo de héroes
-    public void crearEquipoHeroes() {
-        System.out.println("\n=== CREACIÓN DEL EQUIPO DE HÉROES ===");
-        for (int i = 0; i < equipoHeroes.length; i++) {
-            crearYAgregarHeroe(i);
-        }
-        System.out.println("\n¡Equipo de héroes completo!");
-    }
+    // public void crearEquipoHeroes() {
+    //     System.out.println("\n=== CREACIÓN DEL EQUIPO DE HÉROES ===");
+    //     for (int i = 0; i < equipoHeroes.length; i++) {
+    //         crearYAgregarHeroe(i);
+    //     }
+    //     System.out.println("\n¡Equipo de héroes completo!");
+    // }
 
     /**
      * Interfaz para crear un héroe interactivamente desde la entrada
@@ -120,23 +120,40 @@ public class Batalla {
      * Este método traslada a `Batalla` la responsabilidad de validación
      * y creación de héroes (antes estaba duplicada en `App`).
      */
-    public void crearHeroeInteractivo(java.util.Scanner scanner) {
-        System.out.print("Ingrese la posición (1-4): ");
-        int posicion;
-        try {
-            String line = scanner.nextLine();
-            posicion = Integer.parseInt(line) - 1;
-        } catch (NumberFormatException e) {
-            System.out.println(" Posición inválida (entrada no numérica).");
-            return;
-        }
+    // public void crearHeroeInteractivo(java.util.Scanner scanner) {
+    //     System.out.print("Ingrese la posición (1-4): ");
+    //     int posicion;
+    //     try {
+    //         String line = scanner.nextLine();
+    //         posicion = Integer.parseInt(line) - 1;
+    //     } catch (Exception e) {
+    //         System.out.println(" Posición inválida (entrada no numérica).");
+    //         return;
+    //     }
 
-        if (posicion >= 0 && posicion < equipoHeroes.length) {
-            crearYAgregarHeroe(posicion);
-        } else {
-            System.out.println(" Posición inválida.");
-        }
-    }
+    //     if (posicion >= 0 && posicion < equipoHeroes.length) {
+    //         crearYAgregarHeroe(posicion);
+    //     } else {
+    //         System.out.println(" Posición inválida.");
+    //     }
+    // }
+    // public void crearHeroeInteractivo(java.util.Scanner scanner) {
+    //     System.out.print("Ingrese la posición (1-4): ");
+    //     int posicion;
+    //     try {
+    //         String line = scanner.nextLine();
+    //         posicion = Integer.parseInt(line) - 1;
+    //     } catch (NumberFormatException e) {
+    //         System.out.println(" Posición inválida (entrada no numérica).");
+    //         return;
+    //     }
+
+    //     if (posicion >= 0 && posicion < equipoHeroes.length) {
+    //         crearYAgregarHeroe(posicion);
+    //     } else {
+    //         System.out.println(" Posición inválida.");
+    //     }
+    // }
 
     // Método para crear todo el equipo de enemigos
     public void crearEquipoEnemigos() {

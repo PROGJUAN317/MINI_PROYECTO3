@@ -3,6 +3,8 @@ import dqs.modelos.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 
@@ -12,6 +14,13 @@ import javax.swing.border.LineBorder;
  * que todos los héroes actúen, los enemigos realizan su turno automáticamente.
  */
 public class VistaIniciarBatallaNueva extends JFrame {
+
+
+    private ArrayList<Personaje> ordenAtaque = new ArrayList<>();
+    private int indiceTurnoActual = 0;
+    private Personaje personajeActual;
+
+
     private Batalla batalla;
     private JPanel panelEstado;
     private JTextArea areaLog;
@@ -19,16 +28,16 @@ public class VistaIniciarBatallaNueva extends JFrame {
     private final JPanel panelAcciones;
 
     // Visuales por personaje
-    private final JPanel[] panelHeroesUI;
-    private final JLabel[] lblHeroeNombre;
-    private final JProgressBar[] barraHpHeroes;
+    private JPanel[] panelHeroesUI;
+    private JLabel[] lblHeroeNombre;
+    private JProgressBar[] barraHpHeroes;
+    private JProgressBar[] barraMpHeroes;
 
-    private final JPanel[] panelEnemigosUI;
-    private final JLabel[] lblEnemigoNombre;
-    private final JProgressBar[] barraHpEnemigos;
+    private JPanel[] panelEnemigosUI;
+    private JLabel[] lblEnemigoNombre;
+    private JProgressBar[] barraHpEnemigos;
+    private JProgressBar[] barraMpEnemigos;
 
-    // Turnos
-    private int indiceHeroeActual = 0; // índice del héroe que debe actuar
 
     // Modo de selección de objetivo
     private enum TargetMode { NONE, SELECT_ENEMY, SELECT_ALLY, SELECT_REVIVE }
@@ -39,6 +48,7 @@ public class VistaIniciarBatallaNueva extends JFrame {
     private enum ActionSeleccionada {
         NONE, ATTACK, DEFEND, PROVOKE, INCREASE_DEF, HEAL, RESTORE_MP, REMOVE_EFFECT, REVIVE, SLEEP, REINFORCE, PARALYZE, PASS
     }
+
 
     /**
      * Carga un recurso de imagen desde el classpath y lo escala al tamaño
@@ -131,10 +141,13 @@ public class VistaIniciarBatallaNueva extends JFrame {
                 panelHeroesUI = new JPanel[heroes.length];
                 lblHeroeNombre = new JLabel[heroes.length];
                 barraHpHeroes = new JProgressBar[heroes.length];
+                barraMpHeroes = new JProgressBar[heroes.length];
 
                 panelEnemigosUI = new JPanel[enemigos.length];
                 lblEnemigoNombre = new JLabel[enemigos.length];
                 barraHpEnemigos = new JProgressBar[enemigos.length];
+                barraMpEnemigos = new JProgressBar[enemigos.length];
+
 
                 // Construir UI de héroes
                 for (int i = 0; i < heroes.length; i++) {
@@ -155,12 +168,8 @@ public class VistaIniciarBatallaNueva extends JFrame {
                 add(this.panelAcciones, BorderLayout.NORTH);
 
                 refreshUI();
-
-                // Empezar turno en el primer héroe vivo
-                indiceHeroeActual = buscarSiguienteHeroeVivo(0);
-                if (indiceHeroeActual >= 0) {
-                    iniciarTurnoHeroe(indiceHeroeActual);
-                }
+                MostarOrdenAtaque();
+                iniciarTurno();
 
                 setVisible(true);
             }
@@ -189,6 +198,8 @@ public class VistaIniciarBatallaNueva extends JFrame {
              * Retorna:
              * - JPanel configurado listo para añadirse a la interfaz.
              */
+   
+            
             private JPanel crearPanelPersonaje(boolean esHeroe, int idx) {
                 JPanel panel = new JPanel(new BorderLayout());
                 panel.setPreferredSize(new Dimension(200, 120));
@@ -199,8 +210,25 @@ public class VistaIniciarBatallaNueva extends JFrame {
                 lblNombre.setForeground(Color.WHITE);
                 lblNombre.setFont(new Font("Arial", Font.BOLD, 12));
 
-                JProgressBar barra = new JProgressBar();
+                JPanel panelBarras = new JPanel();
+                panelBarras.setLayout(new BoxLayout(panelBarras, BoxLayout.Y_AXIS));
+                panelBarras.setOpaque(false);
+
+                JProgressBar barra = new JProgressBar(0,100);
+                //barra.setValue(80);
                 barra.setStringPainted(true);
+                barra.setForeground(Color.BLUE);
+                barra.setBackground(Color.DARK_GRAY);
+                panelBarras.add(barra);
+
+                
+
+                JProgressBar barra2 = new JProgressBar(0,300);
+                //barra2.setValue(60);
+                barra2.setStringPainted(true);
+                barra2.setForeground(Color.RED);
+                barra2.setBackground(Color.DARK_GRAY);
+                panelBarras.add(barra2);
 
                 JLabel lblIcon = new JLabel();
                 lblIcon.setHorizontalAlignment(SwingConstants.CENTER);
@@ -246,11 +274,12 @@ public class VistaIniciarBatallaNueva extends JFrame {
 
                 panel.add(lblIcon, BorderLayout.CENTER);
                 panel.add(lblNombre, BorderLayout.NORTH);
-                panel.add(barra, BorderLayout.SOUTH);
+                panel.add(panelBarras, BorderLayout.SOUTH);
 
                 if (esHeroe) {
                     lblHeroeNombre[idx] = lblNombre;
                     barraHpHeroes[idx] = barra;
+                    barraMpHeroes[idx] = barra2;
                     panel.addMouseListener(new MouseAdapter() {
                         @Override
                         public void mouseClicked(MouseEvent e) {
@@ -267,6 +296,7 @@ public class VistaIniciarBatallaNueva extends JFrame {
                 } else {
                     lblEnemigoNombre[idx] = lblNombre;
                     barraHpEnemigos[idx] = barra;
+                    barraMpEnemigos[idx] = barra2;
                     panel.addMouseListener(new MouseAdapter() {
                         @Override
                         public void mouseClicked(MouseEvent e) {
@@ -290,6 +320,7 @@ public class VistaIniciarBatallaNueva extends JFrame {
              * Retorna:
              * - JPanel con la botonera totalmente configurada.
              */
+
             private JPanel crearPanelAcciones() {
                 JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
                 panel.setBackground(new Color(20, 20, 30));
@@ -327,7 +358,7 @@ public class VistaIniciarBatallaNueva extends JFrame {
                     if (heroeActuando != null) {
                         heroeActuando.aumentarDefensa(10);
                         appendLog(heroeActuando.getNombre() + " aumenta su defensa en 10.");
-                        terminarTurnoHeroe();
+                        terminarTurno();
                     }
                 });
                 btnCurar.addActionListener(e -> pedirSeleccionAliado(ActionSeleccionada.HEAL));
@@ -339,7 +370,7 @@ public class VistaIniciarBatallaNueva extends JFrame {
                 btnParalisis.addActionListener(e -> pedirSeleccionEnemigo(ActionSeleccionada.PARALYZE));
                 btnPasar.addActionListener(e -> {
                     if (heroeActuando != null) appendLog(heroeActuando.getNombre() + " pasa el turno.");
-                    terminarTurnoHeroe();
+                    terminarTurno();
                 });
 
                 // Guardar botones para habilitarlos según tipo
@@ -447,7 +478,7 @@ public class VistaIniciarBatallaNueva extends JFrame {
                 targetMode = TargetMode.NONE;
 
                 refreshUI();
-                terminarTurnoHeroe();
+                terminarTurno();
             }
 
             /**
@@ -500,35 +531,68 @@ public class VistaIniciarBatallaNueva extends JFrame {
                 targetMode = TargetMode.NONE;
 
                 refreshUI();
-                terminarTurnoHeroe();
+                terminarTurno();
             }
 
-            /**
-             * Inicia el turno del héroe en la posición `indice` del equipo.
-             *
-             * Lógica:
-             * - Si el índice está fuera de rango o no hay héroe/vivo en esa
-             *   posición, busca el siguiente héroe vivo.
-             * - Asigna `heroeActuando` y escribe en el log qué héroe está en turno.
-             * - Habilita las acciones disponibles según el tipo del héroe llamando
-             *   a `habilitarAccionesSegunTipo()`.
-             *
-             * Parámetros:
-             * - indice: posición en el array de héroes que debe actuar.
+            /*Funcion que mostrara el orden de ataque de los personajes. Este no siempre sera el mismo ya quw escoge 
+             * X cantidad de enemigos de un enum con el tipo de enemigo los cuales varian sus estadisticas incluso la de velocidad
+             * por lo que los turnos cambian mayormente por parte de los enemigos 
              */
-            private void iniciarTurnoHeroe(int indice) {
+
+            private void MostarOrdenAtaque(){
+
+                ordenAtaque.clear();
+                
+                // listas con el equipo de heroes y enemigos 
                 Heroe[] heroes = batalla.getEquipoHeroes();
-                if (indice < 0 || indice >= heroes.length) return;
-                heroeActuando = heroes[indice];
-                if (heroeActuando == null || !heroeActuando.esta_vivo()) {
-                    indiceHeroeActual = buscarSiguienteHeroeVivo(indice + 1);
-                    if (indiceHeroeActual >= 0) iniciarTurnoHeroe(indiceHeroeActual);
-                    return;
+                Enemigo[] enemigos = batalla.getEquipoEnemigos();
+                
+                // arraylist donde estaran todos los personajes
+                ArrayList<Personaje> todos = new ArrayList<>();
+
+                // ciclos for para que recorra a los heroes y si este esta vivo lo añade al arraylist todos
+                for(Heroe h : heroes){
+                    if(h != null && h.esta_vivo()) todos.add(h);
+                }
+                for(Enemigo e : enemigos){
+                    if(e != null && e.esta_vivo()) todos.add(e);
                 }
 
-                appendLog("Turno del héroe: " + heroeActuando.getNombre() + " [" + heroeActuando.getTipo().name() + "]");
-                habilitarAccionesSegunTipo(heroeActuando.getTipo());
+                // ordena la arraylist todos de mayor a menor velocidad
+                todos.sort((a,b) -> b.getVelocidad() - a.getVelocidad());
+
+                // añade todos(ya ordenado) en la arraylist orden ataque
+                ordenAtaque.addAll(todos);
+
+                //muestra mediante un appendLog el orden de ataque 
+                appendLog("Orden de ataque:");
+                    for (Personaje p : ordenAtaque) {
+                        appendLog("- " + p.getNombre() + " (" + p.getVelocidad() + ")");
+                    }
+                    indiceTurnoActual = 0;
+
             }
+
+
+            /*funcion para iniciar los turnos en base a la velocidad de los perosnajes */
+            private void iniciarTurno(){
+
+                // selecciona al personaje que actuara en baste a la posicion de orden ataque segun el indice del turno actual(empieza en 0)
+                personajeActual = ordenAtaque.get(indiceTurnoActual);
+
+                appendLog("---------------------");
+                appendLog("Turno de " + personajeActual.getNombre() + "\n");
+
+                // condicionales que preguntan si el personaje que actuara es parte de los heroes ejecuta el turno de los heroes
+                // y si no ejecutara el de los enemigos
+                if(personajeActual instanceof Heroe heroe){
+                    ejecutarTurnoHeroes(heroe);
+                }else if(personajeActual instanceof Enemigo enemigo){
+                    ejecutarTurnoEnemigos(indiceTurnoActual);
+                }
+
+            }
+
 
             /**
              * Habilita o deshabilita los botones de la botonera (`panelAcciones`)
@@ -562,97 +626,108 @@ public class VistaIniciarBatallaNueva extends JFrame {
             }
 
             /**
-             * Finaliza el turno del héroe actual y determina el siguiente paso:
-             * - Si existe otro héroe vivo, inicia su turno.
-             * - Si todos los héroes han actuado, lanza `ejecutarTurnoEnemigos()`
-             *   para procesar las acciones enemigas automáticamente.
+             * Funcion para terminar el turno de los perosnajes
              */
-            private void terminarTurnoHeroe() {
-                indiceHeroeActual = buscarSiguienteHeroeVivo(indiceHeroeActual + 1);
+
+            private void terminarTurno() {
+                // vuelve null al heroe que esta actuando y reinicia la accion seleccionada y el obejtivo para que el siguiente personaje 
+                // empiece desde 0 por asi decirlo
                 heroeActuando = null;
-                if (indiceHeroeActual >= 0) {
-                    iniciarTurnoHeroe(indiceHeroeActual);
-                } else {
-                    ejecutarTurnoEnemigos();
+                accionSeleccionada = ActionSeleccionada.NONE;
+                targetMode = TargetMode.NONE;
+
+                // revisa si comprobar victoria es verdadero si es asi se sale de la funcion
+                if(comprobarVictoria()) return;
+
+                // avanzar índice
+                indiceTurnoActual++;
+
+                // condicional que dice si el indice del turno actual es mayor o igual al tamaño de la arraylist orden ataque entonces
+                // empezara una nueva ronda y reinicia el indice del tuirno actual 
+                if (indiceTurnoActual >= ordenAtaque.size()) {
+                    appendLog("------ NUEVA RONDA ------- ");
+                    MostarOrdenAtaque();
+                    indiceTurnoActual = 0;
+                }
+
+                // ciclo while que revisa si el personaje actual esta muerto, si lo esta avanza al siguiente personaje
+                while (indiceTurnoActual < ordenAtaque.size() && !ordenAtaque.get(indiceTurnoActual).esta_vivo()){
+                    indiceTurnoActual++;
+                }
+
+                // condicional que llama a iniciar turno si el indice es menor al tamaño del arraylist orden de ataque
+                if(indiceTurnoActual < ordenAtaque.size()){
+                    iniciarTurno();
+                }else{
+                    appendLog("Se ha acabado el combate");
                 }
             }
 
-            /**
-             * Busca y retorna el índice del siguiente héroe vivo comenzando desde
-             * la posición `desde`.
-             *
-             * Retorna:
-             * - Índice del héroe vivo encontrado, o -1 si no hay ninguno.
+            /*
+             * Funcion que ejecuta el turno del heroe
              */
-            private int buscarSiguienteHeroeVivo(int desde) {
-                Heroe[] heroes = batalla.getEquipoHeroes();
-                for (int i = desde; i < heroes.length; i++) {
-                    if (heroes[i] != null && heroes[i].esta_vivo()) return i;
+            private void ejecutarTurnoHeroes(Heroe heroe){
+                // condicional que pregunta si el heroes esta vivo, si no lo esta termina el turno llamando a la funcion terminar turno
+                if (heroe == null || !heroe.esta_vivo()){
+                    terminarTurno();
+                    return;
                 }
-                return -1;
+                // crear una variable llamada heroe actuando que sera igual al heroe el cual es un objeto de la clase Heroe
+                heroeActuando = heroe;
+                appendLog("Turno del héroe: " + heroeActuando.getNombre() + " (" + heroeActuando.getTipo().name() + ")");
+                // llama a la funcion habilitarAccionesSegunTipo con el heroe que esta actuando
+                habilitarAccionesSegunTipo(heroeActuando.getTipo());
+
             }
 
-            /**
-             * Ejecuta el turno de los enemigos en un hilo background (SwingWorker)
-             * para no bloquear la EDT.
-             *
-             * Flujo:
-             * - Itera los enemigos vivos y llama a su método de acción
-             *   (`actuar` en jefes o `atacarAleatorio` en normales).
-             * - Tras cada acción duerme brevemente (Thread.sleep) y solicita
-             *   refrescar la UI en la EDT.
-             * - Si detecta victoria durante el proceso, aborta el resto de
-             *   acciones.
-             * - Al terminar, reinicia el flujo de turnos pasando de nuevo a los
-             *   héroes (buscando el primer héroe vivo).
-             *
-             * Nota: maneja excepciones y registra errores en el log.
-             */
-            private void ejecutarTurnoEnemigos() {
-                appendLog("--- Turno de los enemigos ---");
 
-                // Usar un Timer para espaciar las acciones de los enemigos en lugar de
-                // bloquear el hilo con Thread.sleep dentro de un bucle.
-                Enemigo[] enemigos = batalla.getEquipoEnemigos();
-                final int[] indice = {0};
+            // funcion para ejecutar el turno del enemigo 
+            private void ejecutarTurnoEnemigos(int indice){
+                // condicional que revisa que si el indice es mayor o igual al tamaño de ordne ataque sale de la funcion
+                if(indice < 0 || indice >= ordenAtaque.size()) return;
 
-                javax.swing.Timer timer = new javax.swing.Timer(600, null);
+                // crear un objeto actual de tipo Personaje al que se le asigna el valor de orden ataque ( este sera el enemigo que atcara )
+                Personaje actual = ordenAtaque.get(indice);
+                // condicional que "pregunta" si el personaje que actuara es diferente de Enemigo entonces saldra ya el que actua debe ser 
+                // un enemigo
+                if(!(actual instanceof Enemigo)) return;
+
+                // convierte el objeto enemigo(Personaje) a un tipo mas especifico (Enemigo)
+                Enemigo enemigo = (Enemigo) actual;
+
+                // condicioanl donde si el enemigo no esta vivo termina el turno el turno 
+                if(!enemigo.esta_vivo()){
+                    terminarTurno();
+                    return;
+                }
+
+
+                appendLog("Turno del enemigo " + enemigo.getNombre() + " (" + enemigo.getTipo() + ")");
+                appendLog("El enemigo " + enemigo.getNombre() + " ");
+
+
+                javax.swing.Timer timer = new javax.swing.Timer(800, null);
                 timer.addActionListener(ev -> {
-                    // Avanzar hasta el siguiente enemigo vivo
-                    while (indice[0] < enemigos.length && (enemigos[indice[0]] == null || !enemigos[indice[0]].esta_vivo())) {
-                        indice[0]++;
-                    }
+                    timer.stop();
 
-                    if (indice[0] >= enemigos.length) {
-                        // Terminar el turno de enemigos y pasar el turno a los héroes
-                        timer.stop();
-                        indiceHeroeActual = buscarSiguienteHeroeVivo(0);
-                        if (indiceHeroeActual >= 0) iniciarTurnoHeroe(indiceHeroeActual);
-                        return;
-                    }
-
-                    Enemigo e = enemigos[indice[0]];
-                    appendLog("El enemigo " + e.getNombre() + " está actuando...");
-                    if (e instanceof JefeEnemigo jefeEnemigo) {
+                    // condicional que pregfunta que si el enemigo es un jefe entonces actua de diferente forma 
+                    if (enemigo instanceof JefeEnemigo jefeEnemigo){
                         jefeEnemigo.actuar(batalla.getEquipoHeroes());
-                    } else {
-                        e.atacarAleatorio(batalla.getEquipoHeroes());
+                    }else {
+                        enemigo.atacarAleatorio(batalla.getEquipoHeroes());
                     }
 
-                    // Refrescar la UI y comprobar victoria después de la acción
                     refreshUI();
-                    if (comprobarVictoria()) {
-                        timer.stop();
-                        return;
+
+                    if(!comprobarVictoria()){
+                        terminarTurno();
                     }
+            });
 
-                    // Prepararse para el siguiente enemigo en el siguiente tick
-                    indice[0]++;
-                });
+            timer.setRepeats(false);
+            timer.start();
+        }
 
-                timer.setInitialDelay(0);
-                timer.start();
-            }
 
             /**
              * Comprueba si alguno de los bandos (héroes o enemigos) ha quedado sin
@@ -696,12 +771,17 @@ public class VistaIniciarBatallaNueva extends JFrame {
                     if (h != null) {
                         lblHeroeNombre[i].setText(h.getNombre() + " (" + h.getTipo().name() + ")");
                         int max = Math.max(1, h.getHp());
+                        int max2 = Math.max(1,h.getMp());
                         barraHpHeroes[i].setMaximum(max);
                         barraHpHeroes[i].setValue(Math.max(0, h.getHp()));
                         barraHpHeroes[i].setString(h.getHp() + " HP");
+                        barraMpHeroes[i].setMaximum(max2);
+                        barraMpHeroes[i].setValue(Math.max(0, h.getMp()));
+                        barraMpHeroes[i].setString(h.getMp() + "MP");
                     } else {
                         lblHeroeNombre[i].setText("Vacío");
                         barraHpHeroes[i].setValue(0);
+                        barraMpHeroes[i].setValue(0);
                     }
                 }
 
@@ -711,12 +791,17 @@ public class VistaIniciarBatallaNueva extends JFrame {
                     if (e != null) {
                         lblEnemigoNombre[i].setText(e.getNombre() + " (" + e.getTipo().name() + ")");
                         int max = Math.max(1, e.getHp());
+                        int max2 =  Math.max(1, e.getMp());
                         barraHpEnemigos[i].setMaximum(max);
                         barraHpEnemigos[i].setValue(Math.max(0, e.getHp()));
                         barraHpEnemigos[i].setString(e.getHp() + " HP");
+                        barraMpEnemigos[i].setMaximum(max2);
+                        barraMpEnemigos[i].setValue(Math.max(0, e.getMp()));
+                        barraMpEnemigos[i].setString(e.getMp() + "MP");
                     } else {
                         lblEnemigoNombre[i].setText("Vacío");
                         barraHpEnemigos[i].setValue(0);
+                        barraMpEnemigos[i].setValue(0);
                     }
                 }
             }
@@ -738,3 +823,5 @@ public class VistaIniciarBatallaNueva extends JFrame {
                 });
             }
         }
+        
+

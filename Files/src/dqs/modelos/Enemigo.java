@@ -168,4 +168,9 @@ public class Enemigo extends Personaje implements Agresivo, Jefe {
         // Implementación por defecto: no hace nada si no hay contexto. Puedes llamar a atacarAleatorio en un bucle
         System.out.println(this.nombre + " intenta usar AtacarATodos(), pero no hay contexto de objetivos.");
     }
+
+    public int getPorcentajeHP() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getPorcentajeHP'");
+    }
 }
