@@ -1,6 +1,6 @@
 package dqs.controlador;
 
-import dqs.modelo.Batalla;
+import dqs.modelos.Batalla;
 public class Controlador_Batalla {
     private final Batalla batalla;
     public Controlador_Batalla(Batalla batalla) {
