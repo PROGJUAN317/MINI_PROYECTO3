@@ -28,16 +28,26 @@ public class ControladorVistaBatalla implements BattleEventListener {
         this.batalla = batalla;
         this.vista = vista;
     }
-
     /** Inicia la orquestación de la batalla desde el controlador */
     public void iniciar() {
         construirOrdenAtaque();
     // Registrar un listener de consola para enrutar mensajes del modelo a la salida estándar
     // (modo CLI: una sola línea cambia entre GUI y consola)
-    BattleEventBus.setListener(new ConsoleBattleEventListener());
+        boolean CLI_MODE = false; // <-- Cambia a true para ejecutar SOLO en consola
+    BattleEventBus.setListener(this);
         vista.appendLog("Orden de ataque calculada por Controlador:");
         for (Personaje p : ordenAtaque) vista.appendLog("- " + p.getNombre() + " (" + p.getVelocidad() + ")");
         // refrescar UI (llamada en EDT desde la vista si es necesario)
+        if (CLI_MODE) {
+            // Modo consola: enrutar eventos a la consola e iniciar la simulación
+            BattleEventBus.setListener(new ConsoleBattleEventListener());
+            // Ejecutar la simulación usando BatallaManager (entrada estándar)
+            new dqs.servicio.BatallaManager(batalla, new java.util.Scanner(System.in)).ejecutarSimulacion();
+            return; // No continuar con inicialización GUI
+        } else {
+            // Modo GUI: enrutar eventos al controlador para que los muestre en la vista
+            BattleEventBus.setListener(this);
+        }
         SwingUtilities.invokeLater(() -> vista.refreshUI());
         iniciarTurno();
     }
