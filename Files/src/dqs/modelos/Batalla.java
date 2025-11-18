@@ -1,5 +1,7 @@
 package dqs.modelos;
 
+import dqs.events.BattleEventBus;
+
 public class Batalla {
 
     private final Heroe[] equipoHeroes;
@@ -46,12 +48,12 @@ public class Batalla {
     // Método para crear y agregar enemigos directamente al arreglo
     public void crearYAgregarEnemigo(int posicion) {
         if (posicion >= 0 && posicion < equipoEnemigos.length) {
-            System.out.println("\n=== Creando enemigo para la posición " + (posicion + 1) + " ===");
+            BattleEventBus.log("\n=== Creando enemigo para la posición " + (posicion + 1) + " ===");
             // Selección aleatoria de tipo de enemigo para evitar siempre el primer tipo
             Tipo_Enemigo[] tipos = Tipo_Enemigo.values();
             Tipo_Enemigo elegido = tipos[(int)(Math.random() * tipos.length)];
             equipoEnemigos[posicion] = Enemigo.crearEnemigo(elegido, "Enemigo " + (posicion + 1));
-            System.out.println("¡Enemigo agregado exitosamente!");
+            BattleEventBus.log("¡Enemigo agregado exitosamente!");
         } else {
             throw new IllegalArgumentException("Posición inválida para el equipo de enemigos.");
         }
@@ -62,44 +64,44 @@ public class Batalla {
      * pide nombre y registra el enemigo en la posición indicada.
      */
     public void crearEnemigoInteractivo(java.util.Scanner scanner) {
-        System.out.print("Ingrese la posición (1-3): ");
+    BattleEventBus.log("Ingrese la posición (1-3): ");
         int posicion;
         try {
             String line = scanner.nextLine();
             posicion = Integer.parseInt(line) - 1;
         } catch (NumberFormatException e) {
-            System.out.println(" Posición inválida (entrada no numérica).");
+            BattleEventBus.log(" Posición inválida (entrada no numérica).");
             return;
         }
 
         if (posicion >= 0 && posicion < equipoEnemigos.length) {
-            System.out.println("Seleccione el tipo de enemigo:");
+            BattleEventBus.log("Seleccione el tipo de enemigo:");
             Tipo_Enemigo[] tipos = Tipo_Enemigo.values();
             for (int i = 0; i < tipos.length; i++) {
-                System.out.println((i + 1) + ". " + tipos[i].name() + " - " + tipos[i].getDescripcion());
+                BattleEventBus.log((i + 1) + ". " + tipos[i].name() + " - " + tipos[i].getDescripcion());
             }
-            System.out.print("Tipo: ");
+            BattleEventBus.log("Tipo: ");
             int tipoIndex;
             try {
                 String tline = scanner.nextLine();
                 tipoIndex = Integer.parseInt(tline) - 1;
             } catch (NumberFormatException ex) {
-                System.out.println(" Tipo inválido (entrada no numérica).");
+                BattleEventBus.log(" Tipo inválido (entrada no numérica).");
                 return;
             }
 
             if (tipoIndex >= 0 && tipoIndex < Tipo_Enemigo.values().length) {
-                System.out.print("Nombre del enemigo: ");
+                BattleEventBus.log("Nombre del enemigo: ");
                 String nombre = scanner.nextLine();
                 Enemigo enemigo = Enemigo.crearEnemigo(Tipo_Enemigo.values()[tipoIndex], nombre);
                 agregarEnemigo(enemigo, posicion);
-                System.out.println(" Enemigo creado exitosamente!");
+                BattleEventBus.log(" Enemigo creado exitosamente!");
                 enemigo.mostrarEstado();
             } else {
-                System.out.println(" Tipo inválido.");
+                BattleEventBus.log(" Tipo inválido.");
             }
         } else {
-            System.out.println(" Posición inválida.");
+                BattleEventBus.log(" Posición inválida.");
         }
     }
 
@@ -157,7 +159,7 @@ public class Batalla {
 
     // Método para crear todo el equipo de enemigos
     public void crearEquipoEnemigos() {
-        System.out.println("\n=== CREACIÓN DEL EQUIPO DE ENEMIGOS ===");
+    BattleEventBus.log("\n=== CREACIÓN DEL EQUIPO DE ENEMIGOS ===");
         // Primero crear enemigos normales aleatorios
         for (int i = 0; i < equipoEnemigos.length; i++) {
             crearYAgregarEnemigo(i);
@@ -171,7 +173,7 @@ public class Batalla {
         JefeEnemigo jefe = JefeFactory.crearJefe(jefeElegido, "Jefe " + (posicionJefe + 1));
         equipoEnemigos[posicionJefe] = jefe;
 
-        System.out.println("\n¡Equipo de enemigos completo! (incluye jefe en la posición " + (posicionJefe + 1) + ")");
+    BattleEventBus.log("\n¡Equipo de enemigos completo! (incluye jefe en la posición " + (posicionJefe + 1) + ")");
     }
 
     /**
@@ -179,7 +181,7 @@ public class Batalla {
      * Llena las 4 posiciones con héroes de tipos y atributos por defecto.
      */
     public void crearEquipoHeroesPorDefecto() {
-        System.out.println("\n=== CREANDO EQUIPO DE HÉROES POR DEFECTO PARA PRUEBAS ===");
+    BattleEventBus.log("\n=== CREANDO EQUIPO DE HÉROES POR DEFECTO PARA PRUEBAS ===");
         // Asegurarse de que los atributos respeten los rangos definidos en Tipo_Heroe
         equipoHeroes[0] = new Heroe("Aldor", Tipo_Heroe.GUERRERO, 220, 20, 100, 25, 20);
         // MERINA (MAGO): ataque y defensa ajustados para cumplir los rangos del mago
@@ -187,28 +189,28 @@ public class Batalla {
         equipoHeroes[2] = new Heroe("Tharok", Tipo_Heroe.PALADIN, 160, 80, 120, 30, 16);
         // LYRA (DRUIDA): ataque y defensa ajustados para cumplir los rangos del druida
         equipoHeroes[3] = new Heroe("Lyra", Tipo_Heroe.DRUIDA, 120, 140, 80, 25, 22);
-        System.out.println("Equipo de héroes por defecto creado.");
+    BattleEventBus.log("Equipo de héroes por defecto creado.");
     }
 
     // Método para mostrar los equipos
     public void mostrarEquipos() {
-        System.out.println("\n=== EQUIPOS DE BATALLA ===");
+    BattleEventBus.log("\n=== EQUIPOS DE BATALLA ===");
         
-        System.out.println("\nEQUIPO DE HÉROES:");
+    BattleEventBus.log("\nEQUIPO DE HÉROES:");
         for (int i = 0; i < equipoHeroes.length; i++) {
             if (equipoHeroes[i] != null) {
-                System.out.println((i + 1) + ". " + equipoHeroes[i].toString());
+                BattleEventBus.log((i + 1) + ". " + equipoHeroes[i].toString());
             } else {
-                System.out.println((i + 1) + ". [Vacío]");
+                BattleEventBus.log((i + 1) + ". [Vacío]");
             }
         }
         
-        System.out.println("\nEQUIPO DE ENEMIGOS:");
+    BattleEventBus.log("\nEQUIPO DE ENEMIGOS:");
         for (int i = 0; i < equipoEnemigos.length; i++) {
             if (equipoEnemigos[i] != null) {
-                System.out.println((i + 1) + ". " + equipoEnemigos[i].toString());
+                BattleEventBus.log((i + 1) + ". " + equipoEnemigos[i].toString());
             } else {
-                System.out.println((i + 1) + ". [Vacío]");
+                BattleEventBus.log((i + 1) + ". [Vacío]");
             }
         }
     }
@@ -233,15 +235,15 @@ public class Batalla {
     public void iniciar() {
         this.turnoActual = 1;
         this.batallaTerminada = false;
-        System.out.println("Batalla iniciada (estado reseteado)." );
+    BattleEventBus.log("Batalla iniciada (estado reseteado)." );
     }
 
     /**
      * Marca la batalla como finalizada.
      */
     public void finalizar() {
-        this.batallaTerminada = true;
-        System.out.println("Batalla finalizada por el controlador.");
+    this.batallaTerminada = true;
+    BattleEventBus.log("Batalla finalizada por el controlador.");
     }
 
 

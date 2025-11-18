@@ -1,5 +1,7 @@
 package dqs.modelos;
 
+import dqs.events.BattleEventBus;
+
 public class Enemigo extends Personaje implements Agresivo, Jefe {
 	private final Tipo_Enemigo tipo;
 
@@ -38,12 +40,12 @@ public class Enemigo extends Personaje implements Agresivo, Jefe {
     }
 
      public void mostrarEstado() {
-        System.out.println("\n " + nombre + " [" + tipo.name() + "]");
-        System.out.println("HP: " + hp + " | MP: " + mp +
+        BattleEventBus.log("\n " + nombre + " [" + tipo.name() + "]");
+        BattleEventBus.log("HP: " + hp + " | MP: " + mp +
                            " | Ataque: " + ataque + " | Defensa: " + defensa +
                            " | Velocidad: " + velocidad);
-        System.out.println("Descripción: " + tipo.getDescripcion());
-        System.out.println("--------------------------------------");
+        BattleEventBus.log("Descripción: " + tipo.getDescripcion());
+        BattleEventBus.log("--------------------------------------");
     }
 
     public static Enemigo crearEnemigo(Tipo_Enemigo tipo, String nombre) {
@@ -60,10 +62,10 @@ public class Enemigo extends Personaje implements Agresivo, Jefe {
 		return tipo;
 	}
 
-	@Override
-	public void elegirAccion() {
-		System.out.println(nombre + " (" + tipo.name() + ") esta eligiendo su acción...");
-	}
+    @Override
+    public void elegirAccion() {
+        BattleEventBus.log(nombre + " (" + tipo.name() + ") esta eligiendo su acción...");
+    }
 
 	@Override
 	public void atacar(Personaje objetivo) {
@@ -72,14 +74,14 @@ public class Enemigo extends Personaje implements Agresivo, Jefe {
             if (daño < 1) daño = 1; // Daño mínimo de 1
             
             objetivo.recibir_daño(daño);
-            System.out.println(this.nombre + " (" + tipo.name() + ") ataca a " + objetivo.getNombre() + 
+            BattleEventBus.log(this.nombre + " (" + tipo.name() + ") ataca a " + objetivo.getNombre() + 
                              " causando " + daño + " puntos de daño!");
-            
+
             if (!objetivo.esta_vivo()) {
-                System.out.println(objetivo.getNombre() + " ha sido derrotado!");
+                BattleEventBus.log(objetivo.getNombre() + " ha sido derrotado!");
             }
         } else {
-            System.out.println(this.nombre + " no puede atacar a un objetivo inválido o muerto.");
+            BattleEventBus.log(this.nombre + " no puede atacar a un objetivo inválido o muerto.");
         }
 	}
 
@@ -112,14 +114,14 @@ public class Enemigo extends Personaje implements Agresivo, Jefe {
         if (!this.puedeActuar()) return;
 
         if (heroes == null || heroes.length == 0) {
-            System.out.println(this.nombre + " no tiene héroes a los que atacar.");
+            BattleEventBus.log(this.nombre + " no tiene héroes a los que atacar.");
             return;
         }
         Heroe objetivo = buscarHeroeVivo(heroes);
         if (objetivo != null) {
             atacar(objetivo);
         } else {
-            System.out.println(this.nombre + " no encontró héroes vivos para atacar.");
+            BattleEventBus.log(this.nombre + " no encontró héroes vivos para atacar.");
         }
     }
 
@@ -140,11 +142,11 @@ public class Enemigo extends Personaje implements Agresivo, Jefe {
         if (daño < 1) daño = 1; // Daño mínimo de 1
         
         objetivo.recibir_daño(daño);
-        System.out.println(this.nombre + " (" + tipo.name() + ") usa su habilidad especial contra " + objetivo.getNombre() + 
+        BattleEventBus.log(this.nombre + " (" + tipo.name() + ") usa su habilidad especial contra " + objetivo.getNombre() + 
                          " causando " + daño + " puntos de daño!");
-        
+
         if (!objetivo.esta_vivo()) {
-            System.out.println(objetivo.getNombre() + " ha sido derrotado!");
+            BattleEventBus.log(objetivo.getNombre() + " ha sido derrotado!");
         }
     }
 
@@ -166,7 +168,7 @@ public class Enemigo extends Personaje implements Agresivo, Jefe {
     public void AtacarATodos() {
         // Si deseas un objetivo arreglo, deberías pasarlo; aquí asumimos que atacará a un conjunto global
         // Implementación por defecto: no hace nada si no hay contexto. Puedes llamar a atacarAleatorio en un bucle
-        System.out.println(this.nombre + " intenta usar AtacarATodos(), pero no hay contexto de objetivos.");
+    BattleEventBus.log(this.nombre + " intenta usar AtacarATodos(), pero no hay contexto de objetivos.");
     }
 
     public int getPorcentajeHP() {
