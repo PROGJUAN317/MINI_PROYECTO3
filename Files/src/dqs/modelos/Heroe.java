@@ -1,5 +1,7 @@
 package dqs.modelos;
 
+import dqs.events.BattleEventBus;
+
 import java.util.Scanner;
 
 public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
@@ -24,31 +26,31 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
     public static Heroe crearHeroePorConsola() {
         Scanner sc = new Scanner(System.in);
 
-        System.out.print("Crear héroe: ");
-        System.out.print("Nombre: ");
+    BattleEventBus.log("Crear héroe: ");
+    BattleEventBus.log("Nombre: ");
         String nombre = sc.nextLine();
 
-        System.out.print("Seleccione el tipo de heroe: ");
+    BattleEventBus.log("Seleccione el tipo de heroe: ");
         for (Tipo_Heroe t : Tipo_Heroe.values()) {
-            System.out.println("- " + t.name() + ": " + t.getDescripcion());
+                BattleEventBus.log("- " + t.name() + ": " + t.getDescripcion());
         }
 
         Tipo_Heroe tipo = null;
         while (tipo == null) {
-            System.out.print("Ingrese el tipo (MAGO/GUERRERO/PALADIN/DRUIDA): ");
+            BattleEventBus.log("Ingrese el tipo (MAGO/GUERRERO/PALADIN/DRUIDA): ");
             String entrada = sc.nextLine().toUpperCase();
             try {
                 tipo = Tipo_Heroe.valueOf(entrada);
             } catch (IllegalArgumentException e) {
-                System.out.println("Tipo inválido. Intente de nuevo.");
+                BattleEventBus.log("Tipo inválido. Intente de nuevo.");
             } 
         }
 
-        System.out.print("\nIngrese los atributos dentro de los rasgos permitidos:");
-        System.out.print("HP: " + tipo.getMinHP() + " - " + tipo.getMaxHP());
-        System.out.print("MP: " + tipo.getMinMP() + " - " + tipo.getMaxMP());
-        System.out.print("Ataque: " + tipo.getMinAtaque() + " - " + tipo.getMaxAtaque());
-        System.out.print("Defensa: " + tipo.getMinDefensa() + " - " + tipo.getMaxDefensa());
+    BattleEventBus.log("\nIngrese los atributos dentro de los rasgos permitidos:");
+    BattleEventBus.log("HP: " + tipo.getMinHP() + " - " + tipo.getMaxHP());
+    BattleEventBus.log("MP: " + tipo.getMinMP() + " - " + tipo.getMaxMP());
+    BattleEventBus.log("Ataque: " + tipo.getMinAtaque() + " - " + tipo.getMaxAtaque());
+    BattleEventBus.log("Defensa: " + tipo.getMinDefensa() + " - " + tipo.getMaxDefensa());
 
         int hp = pedirEnRango(sc, "HP", tipo.getMinHP(), tipo.getMaxHP());
         int mp = pedirEnRango(sc, "MP", tipo.getMinMP(), tipo.getMaxMP());
@@ -63,30 +65,30 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
  private static int pedirEnRango(Scanner sc, String atributo, int min, int max) {
         int valor;
         while (true) {
-            System.out.print(atributo + ": ");
+            BattleEventBus.log(atributo + ": ");
             try {
                 valor = Integer.parseInt(sc.nextLine());
                 if (valor >= min && valor <= max) {
                     break;
                 } else {
-                    System.out.println(" El valor debe estar entre " + min + " y " + max + ".");
+                    BattleEventBus.log(" El valor debe estar entre " + min + " y " + max + ".");
                 }
             } catch (NumberFormatException e) {
-                System.out.println(" Ingresa un número válido.");
+                BattleEventBus.log(" Ingresa un número válido.");
             }
         }
         return valor;
     }
 
     public void mostrarEstado() {
-        System.out.println("\n " + nombre + " [" + tipo.name() + "]");
-        System.out.println("HP: " + hp + "\n"+ " MP: " + mp + "\n" +
-                           " | Ataque: " + ataque +"\n" + " | Defensa: " + defensa + "\n" +
-                           " | Velocidad: " + velocidad);
-        System.out.println("""
+    BattleEventBus.log("\n " + nombre + " [" + tipo.name() + "]");
+    BattleEventBus.log("HP: " + hp + "\n"+ " MP: " + mp + "\n" +
+               " | Ataque: " + ataque +"\n" + " | Defensa: " + defensa + "\n" +
+               " | Velocidad: " + velocidad);
+    BattleEventBus.log("""
                            
-                           Descripción: """ + tipo.getDescripcion());
-        System.out.println("--------------------------------------");
+               Descripción: """ + tipo.getDescripcion());
+    BattleEventBus.log("--------------------------------------");
     }
 
     public Tipo_Heroe getTipo() {
@@ -95,7 +97,7 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
 
     @Override
     public void elegirAccion() {
-        System.out.println(nombre + " (" + tipo.name() + ") esta eligiendo su acción...");
+    BattleEventBus.log(nombre + " (" + tipo.name() + ") esta eligiendo su acción...");
     }
     
     // MÉTODOS DE LA INTERFAZ TANQUE
@@ -105,12 +107,12 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
             if (mp >= 10) {
                 mp -= 10;
                 this.defensa += defensa;
-                System.out.println(nombre + " aumenta su defensa en " + defensa + " puntos.");
+                BattleEventBus.log(nombre + " aumenta su defensa en " + defensa + " puntos.");
             } else {
-                System.out.println(nombre + " no tiene suficiente MP para aumentar defensa.");
+                BattleEventBus.log(nombre + " no tiene suficiente MP para aumentar defensa.");
             }
         } else {
-            System.out.println(nombre + " no puede aumentar defensa.");
+            BattleEventBus.log(nombre + " no puede aumentar defensa.");
         }
     }
 
@@ -128,13 +130,13 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
                 
                 // Activar nueva defensa
                 aliado.recibirDefensa(this);
-                System.out.println(nombre + " está defendiendo a " + aliado.getNombre() + 
+                BattleEventBus.log(nombre + " está defendiendo a " + aliado.getNombre() + 
                                  "! Los próximos ataques tendrán defensa combinada.");
             } else {
-                System.out.println(nombre + " no tiene suficiente MP para defender.");
+                BattleEventBus.log(nombre + " no tiene suficiente MP para defender.");
             }
         } else {
-            System.out.println(nombre + " no puede defender a otros.");
+            BattleEventBus.log(nombre + " no puede defender a otros.");
         }
     }
     
@@ -151,13 +153,13 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
                 
                 // Aplicar nueva provocación
                 enemigo.serProvocado(this);
-                System.out.println(nombre + " provoca a " + enemigo.getNombre() + 
+                BattleEventBus.log(nombre + " provoca a " + enemigo.getNombre() + 
                                  "! El enemigo debe atacar al tanque en su próximo turno.");
             } else {
-                System.out.println(nombre + " no tiene suficiente MP para provocar.");
+                BattleEventBus.log(nombre + " no tiene suficiente MP para provocar.");
             }
         } else {
-            System.out.println(nombre + " no puede provocar enemigos.");
+            BattleEventBus.log(nombre + " no puede provocar enemigos.");
         }
     }
     
@@ -165,7 +167,7 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
     public void dejarDeDefender(Personaje aliado) {
         if (aliado.estaSiendoDefendido() && aliado.getDefensor() == this) {
             aliado.removerDefensa();
-            System.out.println(nombre + " ha dejado de defender a " + aliado.getNombre());
+            BattleEventBus.log(nombre + " ha dejado de defender a " + aliado.getNombre());
         }
     }
     
@@ -186,7 +188,7 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
             
             if (mp >= costoTotal) {
                 mp -= costoTotal;
-                System.out.println(nombre + " provoca a todos los enemigos vivos!");
+                BattleEventBus.log(nombre + " provoca a todos los enemigos vivos!");
                 
                 for (Personaje enemigo : enemigos) {
                     if (enemigo != null && enemigo.esta_vivo()) {
@@ -197,10 +199,10 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
                     }
                 }
             } else {
-                System.out.println(nombre + " no tiene suficiente MP para provocar a todos los enemigos. Costo: " + costoTotal);
+                BattleEventBus.log(nombre + " no tiene suficiente MP para provocar a todos los enemigos. Costo: " + costoTotal);
             }
         } else {
-            System.out.println(nombre + " no puede provocar enemigos.");
+                BattleEventBus.log(nombre + " no puede provocar enemigos.");
         }
     }
     // MÉTODOS DE LA INTERFAZ SANADOR
@@ -211,12 +213,12 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
                 mp -= 15;
                 int curacion = 30;
                 objetivo.setHp(objetivo.getHp() + curacion);
-                System.out.println(nombre + " ha curado a " + objetivo.getNombre() + " por " + curacion + " puntos de vida.");
+                BattleEventBus.log(nombre + " ha curado a " + objetivo.getNombre() + " por " + curacion + " puntos de vida.");
             } else {
-                System.out.println(nombre + " no tiene suficiente MP para curar.");
+                BattleEventBus.log(nombre + " no tiene suficiente MP para curar.");
             }
         } else {
-            System.out.println(nombre + " no puede curar.");
+            BattleEventBus.log(nombre + " no puede curar.");
         }
     }
 
@@ -232,14 +234,14 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
                 objetivo.removerProvocacion();
                 objetivo.removerDefensa();
                 objetivo.esta_vivo = true; // asegurar bandera activa
-                System.out.println(nombre + " ha revivido a " + objetivo.getNombre() + " con 50 puntos de vida.");
+                BattleEventBus.log(nombre + " ha revivido a " + objetivo.getNombre() + " con 50 puntos de vida.");
             } else if(objetivo.esta_vivo()) {
-                System.out.println(objetivo.getNombre() + " ya está vivo.");
+                BattleEventBus.log(objetivo.getNombre() + " ya está vivo.");
             } else {
-                System.out.println(nombre + " no tiene suficiente MP para revivir.");
+                BattleEventBus.log(nombre + " no tiene suficiente MP para revivir.");
             }
         } else {
-            System.out.println(nombre + " no puede revivir a otros.");
+            BattleEventBus.log(nombre + " no puede revivir a otros.");
         }
     }
     @Override
@@ -248,22 +250,22 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
             if (mp >= 20) {
                 mp -= 10;
                 objetivo.setMp(objetivo.getMp() + 25);
-                System.out.println(nombre + " ha restaurado 25 puntos de MP a " + objetivo.getNombre() + ".");
+                BattleEventBus.log(nombre + " ha restaurado 25 puntos de MP a " + objetivo.getNombre() + ".");
             } else {
-                System.out.println(nombre + " no tiene suficiente MP para restaurar.");
+                BattleEventBus.log(nombre + " no tiene suficiente MP para restaurar.");
             }
         } else {
-            System.out.println(nombre + " no puede restaurar mana.");
+            BattleEventBus.log(nombre + " no puede restaurar mana.");
         }
     }
 
     @Override
     public void eliminarEfectoNegativo(Personaje objetivo) {
         if (tipo == Tipo_Heroe.DRUIDA || tipo == Tipo_Heroe.PALADIN) {
-            System.out.println(nombre + " elimina efectos negativos de " + objetivo.getNombre() + ".");
+            BattleEventBus.log(nombre + " elimina efectos negativos de " + objetivo.getNombre() + ".");
             // Lógica para limpiar estados negativos
         } else {
-            System.out.println(nombre + " no puede eliminar efectos negativos de " + objetivo.getNombre() + ".");
+            BattleEventBus.log(nombre + " no puede eliminar efectos negativos de " + objetivo.getNombre() + ".");
         }
     }
 
@@ -278,10 +280,10 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
                 mp -= costoMana;
                 objetivo.aplicarSueno(3); // dormir 3 turnos
             } else {
-                System.out.println(nombre + " no tiene suficiente MP para lanzar el hechizo.");
+                BattleEventBus.log(nombre + " no tiene suficiente MP para lanzar el hechizo.");
             }
         } else {
-            System.out.println(nombre + " no puede lanzar hechizos.");
+            BattleEventBus.log(nombre + " no puede lanzar hechizos.");
         }
     }
 
@@ -293,13 +295,13 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
                 mp -= costoMana;
                 int aumento = 60;
                 objetivo.aumentarAtaque(aumento);
-                System.out.println(nombre + " lanza el hechizo Refuerzo a " + objetivo.getNombre() +
+                BattleEventBus.log(nombre + " lanza el hechizo Refuerzo a " + objetivo.getNombre() +
                                  " aumentando su ataque en " + aumento + " puntos.");
             } else {
-                System.out.println(nombre + " no tiene suficiente MP para lanzar el hechizo.");
+                BattleEventBus.log(nombre + " no tiene suficiente MP para lanzar el hechizo.");
             }
         } else {
-            System.out.println(nombre + " no puede lanzar hechizos.");
+            BattleEventBus.log(nombre + " no puede lanzar hechizos.");
         }
     }
 
@@ -313,10 +315,10 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
                 mp -= costoMana;
                 objetivo.aplicarParalisis(1);
             } else {
-                System.out.println(nombre + " no tiene suficiente MP para lanzar el hechizo.");
+                BattleEventBus.log(nombre + " no tiene suficiente MP para lanzar el hechizo.");
             }
         } else {
-            System.out.println(nombre + " no puede lanzar hechizos.");
+            BattleEventBus.log(nombre + " no puede lanzar hechizos.");
         }
     }
 
@@ -327,14 +329,14 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
             if (daño < 1) daño = 1; // Daño mínimo de 1
             
             objetivo.recibir_daño(daño);
-            System.out.println(this.nombre + " (" + tipo.name() + ") ataca a " + objetivo.getNombre() + 
+            BattleEventBus.log(this.nombre + " (" + tipo.name() + ") ataca a " + objetivo.getNombre() + 
                              " causando " + daño + " puntos de daño!");
             
             if (!objetivo.esta_vivo()) {
-                System.out.println(objetivo.getNombre() + " ha sido derrotado!");
+                BattleEventBus.log(objetivo.getNombre() + " ha sido derrotado!");
             }
         } else {
-            System.out.println(this.nombre + " no puede atacar a un objetivo inválido o muerto.");
+            BattleEventBus.log(this.nombre + " no puede atacar a un objetivo inválido o muerto.");
         }
     }
 
@@ -344,7 +346,7 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
         if (objetivo != null) {
             atacar(objetivo);
         } else {
-            System.out.println(this.nombre + " no encuentra enemigos vivos para atacar.");
+            BattleEventBus.log(this.nombre + " no encuentra enemigos vivos para atacar.");
         }
     }
 

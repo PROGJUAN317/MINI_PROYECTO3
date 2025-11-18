@@ -1,5 +1,7 @@
 package dqs.modelos;
 
+import dqs.events.BattleEventBus;
+
 public abstract class Personaje {
     protected String nombre;
     protected int hp;
@@ -54,7 +56,7 @@ public abstract class Personaje {
             // Daño mínimo de 1
             if (dañoFinal < 1) dañoFinal = 1;
             
-            System.out.println(defensor.getNombre() + " defiende a " + this.nombre + 
+            BattleEventBus.log(defensor.getNombre() + " defiende a " + this.nombre + 
                              "! Defensa combinada: " + defensaCombinada + 
                              " | Daño reducido de " + cantidad + " a " + dañoFinal);
         } else {
@@ -91,7 +93,7 @@ public abstract class Personaje {
     public void aplicarSueno(int turnos) {
         if (turnos <= 0) return;
         this.turnosSueno = Math.max(this.turnosSueno, turnos);
-        System.out.println(this.nombre + " ha caído dormido por " + turnos + " turnos!");
+        BattleEventBus.log(this.nombre + " ha caído dormido por " + turnos + " turnos!");
     }
 
     /**
@@ -101,7 +103,7 @@ public abstract class Personaje {
     public void aplicarParalisis(int turnos) {
         if (turnos <= 0) return;
         this.turnosParalisis = Math.max(this.turnosParalisis, turnos);
-        System.out.println(this.nombre + " ha sido paralizado por " + turnos + " turno(s)!");
+    BattleEventBus.log(this.nombre + " ha sido paralizado por " + turnos + " turno(s)!");
     }
 
     /**
@@ -111,12 +113,12 @@ public abstract class Personaje {
     public boolean puedeActuar() {
         if (this.turnosParalisis > 0) {
             this.turnosParalisis--;
-            System.out.println(this.nombre + " está paralizado y pierde el turno. Turnos de parálisis restantes: " + this.turnosParalisis);
+            BattleEventBus.log(this.nombre + " está paralizado y pierde el turno. Turnos de parálisis restantes: " + this.turnosParalisis);
             return false;
         }
         if (this.turnosSueno > 0) {
             this.turnosSueno--;
-            System.out.println(this.nombre + " está dormido y pierde el turno. Turnos de sueño restantes: " + this.turnosSueno);
+            BattleEventBus.log(this.nombre + " está dormido y pierde el turno. Turnos de sueño restantes: " + this.turnosSueno);
             return false;
         }
         return true;
@@ -126,12 +128,12 @@ public abstract class Personaje {
     public void recibirDefensa(Personaje tanque) {
         this.siendo_defendido = true;
         this.defensor = tanque;
-        System.out.println(tanque.getNombre() + " ahora está defendiendo a " + this.nombre);
+    BattleEventBus.log(tanque.getNombre() + " ahora está defendiendo a " + this.nombre);
     }
     
     public void removerDefensa() {
         if (siendo_defendido) {
-            System.out.println(this.nombre + " ya no está siendo defendido.");
+            BattleEventBus.log(this.nombre + " ya no está siendo defendido.");
             this.siendo_defendido = false;
             this.defensor = null;
         }
@@ -149,13 +151,13 @@ public abstract class Personaje {
     public void serProvocado(Personaje tanque) {
         this.esta_provocado = true;
         this.provocador = tanque;
-        System.out.println(this.nombre + " ha sido provocado por " + tanque.getNombre() + 
-                         "! Debe atacar al tanque en su próximo turno.");
+    BattleEventBus.log(this.nombre + " ha sido provocado por " + tanque.getNombre() + 
+             "! Debe atacar al tanque en su próximo turno.");
     }
     
     public void removerProvocacion() {
         if (esta_provocado) {
-            System.out.println(this.nombre + " ya no está provocado.");
+            BattleEventBus.log(this.nombre + " ya no está provocado.");
             this.esta_provocado = false;
             this.provocador = null;
         }
@@ -173,7 +175,7 @@ public abstract class Personaje {
     public Personaje seleccionarObjetivo(Personaje[] objetivos) {
         // Si está provocado, debe atacar al provocador si está vivo
         if (esta_provocado && provocador != null && provocador.esta_vivo()) {
-            System.out.println(this.nombre + " está provocado y debe atacar a " + provocador.getNombre());
+            BattleEventBus.log(this.nombre + " está provocado y debe atacar a " + provocador.getNombre());
             return provocador;
         }
         
@@ -196,18 +198,18 @@ public abstract class Personaje {
             if (daño < 1) daño = 1;
             
             objetivo.recibir_daño(daño);
-            System.out.println(this.nombre + " ataca a " + objetivo.getNombre() + 
+            BattleEventBus.log(this.nombre + " ataca a " + objetivo.getNombre() + 
                              " causando " + daño + " puntos de daño!");
             
             if (!objetivo.esta_vivo()) {
-                System.out.println(objetivo.getNombre() + " ha sido derrotado!");
+                BattleEventBus.log(objetivo.getNombre() + " ha sido derrotado!");
                 // Si el objetivo derrotado era el provocador, remover provocación
                 if (objetivo == this.provocador) {
                     this.removerProvocacion();
                 }
             }
         } else {
-            System.out.println(this.nombre + " no encuentra objetivos válidos para atacar.");
+            BattleEventBus.log(this.nombre + " no encuentra objetivos válidos para atacar.");
         }
     }
     

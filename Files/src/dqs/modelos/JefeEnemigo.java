@@ -1,5 +1,7 @@
 package dqs.modelos;
 
+import dqs.events.BattleEventBus;
+
 /**
  * Subclase de Enemigo que representa a un Jefe con comportamiento especial.
  * - Puede ejecutar una habilidad especial cada N turnos (por defecto 2)
@@ -45,7 +47,7 @@ public class JefeEnemigo extends Enemigo {
             int daño = this.getAtaque() * 3 - objetivo.getDefensa();
             if (daño < 1) daño = 1;
             objetivo.recibir_daño(daño);
-            System.out.println(this.getNombre() + " (JEFE) usa su habilidad especial contra " + objetivo.getNombre() + " causando " + daño + " puntos de daño!");
+            BattleEventBus.log(this.getNombre() + " (JEFE) usa su habilidad especial contra " + objetivo.getNombre() + " causando " + daño + " puntos de daño!");
         }
     }
 
@@ -57,6 +59,6 @@ public class JefeEnemigo extends Enemigo {
     @Override
     public void AtacarATodos() {
         // Implementación simple: atacar a todos los héroes vivos (se requiere contexto externo)
-        System.out.println(this.getNombre() + " intenta atacar a todos, pero necesita contexto de objetivos.");
+        BattleEventBus.log(this.getNombre() + " intenta atacar a todos, pero necesita contexto de objetivos.");
     }
 }
