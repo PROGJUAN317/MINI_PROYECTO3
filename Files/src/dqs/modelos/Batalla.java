@@ -63,46 +63,33 @@ public class Batalla {
      * Crear un enemigo de forma interactiva: pide posición, lista tipos,
      * pide nombre y registra el enemigo en la posición indicada.
      */
-    public void crearEnemigoInteractivo(java.util.Scanner scanner) {
-    BattleEventBus.log("Ingrese la posición (1-3): ");
-        int posicion;
-        try {
-            String line = scanner.nextLine();
-            posicion = Integer.parseInt(line) - 1;
-        } catch (NumberFormatException e) {
-            BattleEventBus.log(" Posición inválida (entrada no numérica).");
-            return;
+    /**
+     * Crea un enemigo en la posición indicada usando parámetros ya
+     * validados por la capa de presentación o el controlador. Esto
+     * evita que el modelo lea directamente de la entrada estándar.
+     *
+     * @param posicion índice 0-based donde crear el enemigo
+     * @param tipoIndex índice dentro de Tipo_Enemigo.values()
+     * @param nombre nombre para asignar al enemigo
+     * @return true si se creó correctamente, false en caso de error
+     */
+    public boolean crearEnemigoInteractivo(int posicion, int tipoIndex, String nombre) {
+        if (posicion < 0 || posicion >= equipoEnemigos.length) {
+            BattleEventBus.log(" Posición inválida.");
+            return false;
         }
 
-        if (posicion >= 0 && posicion < equipoEnemigos.length) {
-            BattleEventBus.log("Seleccione el tipo de enemigo:");
-            Tipo_Enemigo[] tipos = Tipo_Enemigo.values();
-            for (int i = 0; i < tipos.length; i++) {
-                BattleEventBus.log((i + 1) + ". " + tipos[i].name() + " - " + tipos[i].getDescripcion());
-            }
-            BattleEventBus.log("Tipo: ");
-            int tipoIndex;
-            try {
-                String tline = scanner.nextLine();
-                tipoIndex = Integer.parseInt(tline) - 1;
-            } catch (NumberFormatException ex) {
-                BattleEventBus.log(" Tipo inválido (entrada no numérica).");
-                return;
-            }
-
-            if (tipoIndex >= 0 && tipoIndex < Tipo_Enemigo.values().length) {
-                BattleEventBus.log("Nombre del enemigo: ");
-                String nombre = scanner.nextLine();
-                Enemigo enemigo = Enemigo.crearEnemigo(Tipo_Enemigo.values()[tipoIndex], nombre);
-                agregarEnemigo(enemigo, posicion);
-                BattleEventBus.log(" Enemigo creado exitosamente!");
-                enemigo.mostrarEstado();
-            } else {
-                BattleEventBus.log(" Tipo inválido.");
-            }
-        } else {
-                BattleEventBus.log(" Posición inválida.");
+        Tipo_Enemigo[] tipos = Tipo_Enemigo.values();
+        if (tipoIndex < 0 || tipoIndex >= tipos.length) {
+            BattleEventBus.log(" Tipo inválido.");
+            return false;
         }
+
+        Enemigo enemigo = Enemigo.crearEnemigo(tipos[tipoIndex], nombre);
+        agregarEnemigo(enemigo, posicion);
+        BattleEventBus.log(" Enemigo creado exitosamente!");
+        enemigo.mostrarEstado();
+        return true;
     }
 
     // Método para crear todo el equipo de héroes

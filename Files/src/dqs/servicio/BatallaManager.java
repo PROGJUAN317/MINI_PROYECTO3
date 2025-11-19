@@ -1,6 +1,5 @@
 package dqs.servicio;
 
-import java.util.Scanner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -13,11 +12,9 @@ import dqs.modelos.*;
  */
 public class BatallaManager {
     private final Batalla batalla;
-    private final Scanner scanner;
 
-    public BatallaManager(Batalla batalla, Scanner scanner) {
+    public BatallaManager(Batalla batalla) {
         this.batalla = batalla;
-        this.scanner = scanner;
     }
     /**
      * Crea un manager para orquestar la simulación de una batalla.
@@ -41,19 +38,19 @@ public class BatallaManager {
         int turno = 1;
 
         while (!batalla.isBatallaTerminada()) {
-            System.out.println("\n=== TURNO " + turno + " ===");
+            dqs.events.BattleEventBus.log("\n=== TURNO " + turno + " ===");
             mostrarEstadoActual();
 
             // Turno de los héroes (MANUAL)
-            System.out.println("\n--- Turno de los Héroes ---");
+            dqs.events.BattleEventBus.log("\n--- Turno de los Héroes ---");
             turnoHeroesManual();
 
             if (verificarVictoria()) break;
 
             // Turno de los enemigos (automático pero con pausa)
-            System.out.println("\n--- Turno de los Enemigos ---");
-            System.out.println("Presione Enter para continuar con el turno de los enemigos...");
-            scanner.nextLine();
+            dqs.events.BattleEventBus.log("\n--- Turno de los Enemigos ---");
+            dqs.events.BattleEventBus.log("Presione Enter para continuar con el turno de los enemigos...");
+            // Nota: la lectura de entrada la gestiona la vista/controlador en la nueva arquitectura MVC.
 
             // Ejecutar acciones de enemigos con un scheduler para evitar bloquear el hilo principal
             Enemigo[] enemigos = batalla.getEquipoEnemigos();
@@ -65,7 +62,7 @@ public class BatallaManager {
                 if (enemigo != null && enemigo.esta_vivo()) {
                     Enemigo eFinal = enemigo; // para usar dentro de la lambda
                     scheduler.schedule(() -> {
-                        System.out.println("\n" + eFinal.getNombre() + " está actuando...");
+                        dqs.events.BattleEventBus.log("\n" + eFinal.getNombre() + " está actuando...");
 
                         // Si el enemigo es un jefe con comportamiento especial, delegar en su actuar
                         try {
@@ -76,9 +73,9 @@ public class BatallaManager {
                                 // Enemigos normales atacan a un héroe vivo aleatorio
                                 eFinal.atacarAleatorio(batalla.getEquipoHeroes());
                             }
-                        } catch (Exception ex) {
-                            System.out.println("Error al ejecutar acción del enemigo: " + ex.getMessage());
-                        }
+                            } catch (Exception ex) {
+                                dqs.events.BattleEventBus.log("Error al ejecutar acción del enemigo: " + ex.getMessage());
+                            }
                     }, delayMs, TimeUnit.MILLISECONDS);
                     delayMs += stepMs;
                 }
@@ -100,12 +97,12 @@ public class BatallaManager {
             turno++;
 
             if (turno > 50) { // Límite de seguridad
-                System.out.println(" ¡La batalla ha durado demasiado! Es un empate.");
+                dqs.events.BattleEventBus.log(" ¡La batalla ha durado demasiado! Es un empate.");
                 break;
             }
 
-            System.out.println("\nPresione Enter para continuar al siguiente turno...");
-            scanner.nextLine();
+            dqs.events.BattleEventBus.log("\nPresione Enter para continuar al siguiente turno...");
+            // Nota: la lectura de entrada la gestiona la vista/controlador en la nueva arquitectura MVC.
         }
     }
 
@@ -117,22 +114,22 @@ public class BatallaManager {
      * por parte del usuario en los turnos manuales.
      */
     private void mostrarEstadoActual() {
-        System.out.println("\n ESTADO ACTUAL DE LA BATALLA:");
+    dqs.events.BattleEventBus.log("\n ESTADO ACTUAL DE LA BATALLA:");
 
-        System.out.println("\n HÉROES VIVOS:");
+    dqs.events.BattleEventBus.log("\n HÉROES VIVOS:");
         for (int i = 0; i < batalla.getEquipoHeroes().length; i++) {
             Heroe heroe = batalla.getEquipoHeroes()[i];
             if (heroe != null && heroe.esta_vivo()) {
-                System.out.println((i + 1) + ". " + heroe.getNombre() + " [" + heroe.getTipo().name() + "] " +
+                dqs.events.BattleEventBus.log((i + 1) + ". " + heroe.getNombre() + " [" + heroe.getTipo().name() + "] " +
                                  "HP: " + heroe.getHp() + " | MP: " + heroe.getMp());
             }
         }
 
-        System.out.println("\n ENEMIGOS VIVOS:");
+    dqs.events.BattleEventBus.log("\n ENEMIGOS VIVOS:");
         for (int i = 0; i < batalla.getEquipoEnemigos().length; i++) {
             Enemigo enemigo = batalla.getEquipoEnemigos()[i];
             if (enemigo != null && enemigo.esta_vivo()) {
-                System.out.println((i + 1) + ". " + enemigo.getNombre() + " [" + enemigo.getTipo().name() + "] " +
+                dqs.events.BattleEventBus.log((i + 1) + ". " + enemigo.getNombre() + " [" + enemigo.getTipo().name() + "] " +
                                  "HP: " + enemigo.getHp() + " | MP: " + enemigo.getMp());
             }
         }
@@ -146,177 +143,227 @@ public class BatallaManager {
     private void turnoHeroesManual() {
         for (Heroe heroe : batalla.getEquipoHeroes()) {
             if (heroe != null && heroe.esta_vivo()) {
-                System.out.println("\n Es el turno de: " + heroe.getNombre() + " [" + heroe.getTipo().name() + "]");
-                System.out.println("HP: " + heroe.getHp() + " | MP: " + heroe.getMp());
+                dqs.events.BattleEventBus.log("\n Es el turno de: " + heroe.getNombre() + " [" + heroe.getTipo().name() + "]");
+                dqs.events.BattleEventBus.log("HP: " + heroe.getHp() + " | MP: " + heroe.getMp());
 
-                mostrarMenuAccionHeroe(heroe);
+                // En MVC el controlador solicita a la vista la acción del jugador
+                // y luego invoca BatallaManager.ejecutarAccionHeroe(...).
+                dqs.events.BattleEventBus.log("[turnoHeroesManual] Esperando acción del controlador para " + heroe.getNombre());
 
                 if (verificarVictoria()) break;
             }
         }
     }
-
     /**
-     * Muestra el menú de acciones disponible para un héroe concreto,
-     * adaptando las opciones según el tipo del héroe (Guerrero,
-     * Paladín, Druida, etc.). Repite hasta que se ejecuta una acción
-     * válida que consume el turno.
-     *
-     * @param heroe el héroe que va a actuar
+     * Devuelve las opciones de acción disponibles para el héroe.
+     * La vista/controlador debe mostrar estas opciones y pedir al
+     * usuario que seleccione una, luego invocar
+     * BatallaManager.ejecutarAccionHeroe(...).
      */
-    private void mostrarMenuAccionHeroe(Heroe heroe) {
-        while (true) {
-            System.out.println("\n¿Qué acción desea realizar?");
-            System.out.println("1. Atacar Enemigo");
+    public String[] obtenerOpcionesAccion(Heroe heroe) {
+        java.util.List<String> ops = new java.util.ArrayList<>();
+        ops.add("Atacar Enemigo");
 
-            if (heroe.getTipo() == Tipo_Heroe.GUERRERO || heroe.getTipo() == Tipo_Heroe.PALADIN) {
-                System.out.println("2. Defender Aliado");
-                System.out.println("3. Provocar Enemigo");
-                System.out.println("4. Aumentar Defensa");
-            }
-
-            if (heroe.getTipo() == Tipo_Heroe.DRUIDA || heroe.getTipo() == Tipo_Heroe.PALADIN) {
-                System.out.println("5. Curar Aliado");
-                System.out.println("6. Restaurar Mana");
-                System.out.println("7. Eliminar Efecto Negativo");
-            }
-
-            if (heroe.getTipo() == Tipo_Heroe.PALADIN) {
-                System.out.println("8. Revivir Aliado");
-            }
-
-            if (heroe.getTipo() == Tipo_Heroe.MAGO || heroe.getTipo() == Tipo_Heroe.DRUIDA) {
-                System.out.println("9. Lanzar Hechizo de sueño");
-            }
-
-            if (heroe.getTipo() == Tipo_Heroe.MAGO){
-                System.out.println("10. Lanzar Hechizo de refuerzo");
-                System.out.println("11. Lanzar Hechizo de parálisis");
-            }
-
-            System.out.println("12. Pasar Turno");
-            System.out.print("Seleccione una opción: ");
-
-            int opcion = leerEntero();
-
-            if (ejecutarAccionHeroe(heroe, opcion)) {
-                break; // Salir del bucle cuando se ejecute una acción válida
-            }
+        if (heroe.getTipo() == Tipo_Heroe.GUERRERO || heroe.getTipo() == Tipo_Heroe.PALADIN) {
+            ops.add("Defender Aliado");
+            ops.add("Provocar Enemigo");
+            ops.add("Aumentar Defensa");
         }
+
+        if (heroe.getTipo() == Tipo_Heroe.DRUIDA || heroe.getTipo() == Tipo_Heroe.PALADIN) {
+            ops.add("Curar Aliado");
+            ops.add("Restaurar Mana");
+            ops.add("Eliminar Efecto Negativo");
+        }
+
+        if (heroe.getTipo() == Tipo_Heroe.PALADIN) {
+            ops.add("Revivir Aliado");
+        }
+
+        if (heroe.getTipo() == Tipo_Heroe.MAGO || heroe.getTipo() == Tipo_Heroe.DRUIDA) {
+            ops.add("Lanzar Hechizo de sueño");
+        }
+
+        if (heroe.getTipo() == Tipo_Heroe.MAGO) {
+            ops.add("Lanzar Hechizo de refuerzo");
+            ops.add("Lanzar Hechizo de parálisis");
+        }
+
+        ops.add("Pasar Turno");
+        return ops.toArray(new String[0]);
     }
 
     /**
-     * Ejecuta la acción elegida por el usuario para el héroe.
-     *
-     * @return true si la acción fue válida y el héroe consumió su turno;
-     *         false si la opción fue inválida para que el menú la repita.
+     * Lista los nombres de enemigos vivos (para la UI)
      */
-private boolean ejecutarAccionHeroe(Heroe heroe, int opcion) {
-    switch (opcion) {
-        case 1 -> {
-            return atacarConHeroe(heroe);
-        }
-        case 2 -> {
-            if (heroe.getTipo() == Tipo_Heroe.GUERRERO || heroe.getTipo() == Tipo_Heroe.PALADIN) {
-                return defenderConHeroe(heroe);
+    public String[] listarEnemigosVivos() {
+        java.util.List<String> lista = new java.util.ArrayList<>();
+        for (Enemigo enemigo : batalla.getEquipoEnemigos()) {
+            if (enemigo != null && enemigo.esta_vivo()) {
+                lista.add(enemigo.getNombre());
             }
         }
-        case 3 -> {
-            if (heroe.getTipo() == Tipo_Heroe.GUERRERO || heroe.getTipo() == Tipo_Heroe.PALADIN) {
-                return provocarConHeroe(heroe);
-            }
+        if (lista.isEmpty()) lista.add("[No hay enemigos vivos]");
+        return lista.toArray(new String[0]);
+    }
+
+    /**
+     * Lista los nombres de héroes vivos (para la UI)
+     */
+    public String[] listarHeroesVivos() {
+        java.util.List<String> lista = new java.util.ArrayList<>();
+        for (Heroe h : batalla.getEquipoHeroes()) {
+            if (h != null && h.esta_vivo()) lista.add(h.getNombre());
         }
-        case 4 -> {
-            if (heroe.getTipo() == Tipo_Heroe.GUERRERO || heroe.getTipo() == Tipo_Heroe.PALADIN) {
+        if (lista.isEmpty()) lista.add("[No hay héroes vivos]");
+        return lista.toArray(new String[0]);
+    }
+
+    /**
+     * Lista los nombres de héroes caídos (para revivir)
+     */
+    public String[] listarHeroesCaidos() {
+        java.util.List<String> lista = new java.util.ArrayList<>();
+        for (Heroe h : batalla.getEquipoHeroes()) {
+            if (h != null && !h.esta_vivo()) lista.add(h.getNombre());
+        }
+        if (lista.isEmpty()) lista.add("[No hay héroes caídos]");
+        return lista.toArray(new String[0]);
+    }
+
+    /**
+     * Ejecuta la acción elegida para un héroe. El controlador obtiene
+     * la opción (índice dentro de obtenerOpcionesAccion) y si hace
+     * falta pasa un objetivo (índice basado en arrays retornados por
+     * listarEnemigosVivos/listarHeroesVivos/listarHeroesCaidos).
+     *
+     * @param objetivoIndex índice del objetivo en la lista correspondiente o -1 si no aplica
+     */
+    public boolean ejecutarAccionHeroe(Heroe heroe, int opcion, int objetivoIndex) {
+        // Mapear opción (basada en el array devuelto por obtenerOpcionesAccion)
+        String[] ops = obtenerOpcionesAccion(heroe);
+        if (opcion < 0 || opcion >= ops.length) {
+            dqs.events.BattleEventBus.log(" Opción inválida o fuera de rango.");
+            return false;
+        }
+
+        String seleccion = ops[opcion];
+        switch (seleccion) {
+            case "Atacar Enemigo" -> {
+                return atacarConHeroe(heroe, objetivoIndex);
+            }
+            case "Defender Aliado" -> {
+                return defenderConHeroe(heroe, objetivoIndex);
+            }
+            case "Provocar Enemigo" -> {
+                return provocarConHeroe(heroe, objetivoIndex);
+            }
+            case "Aumentar Defensa" -> {
                 heroe.aumentarDefensa(10);
                 return true;
             }
-        }
-        case 5 -> {
-            if (heroe.getTipo() == Tipo_Heroe.DRUIDA || heroe.getTipo() == Tipo_Heroe.PALADIN) {
-                return curarConHeroe(heroe);
+            case "Curar Aliado" -> {
+                return curarConHeroe(heroe, objetivoIndex);
             }
-        }
-        case 6 -> {
-            if (heroe.getTipo() == Tipo_Heroe.DRUIDA) {
-                return restaurarManaConHeroe(heroe);
+            case "Restaurar Mana" -> {
+                return restaurarManaConHeroe(heroe, objetivoIndex);
             }
-        }
-        case 7 -> {
-            if (heroe.getTipo() == Tipo_Heroe.DRUIDA || heroe.getTipo() == Tipo_Heroe.PALADIN) {
-                return eliminarEfectoConHeroe(heroe);
+            case "Eliminar Efecto Negativo" -> {
+                return eliminarEfectoConHeroe(heroe, objetivoIndex);
             }
-        }
-        case 8 -> {
-            if (heroe.getTipo() == Tipo_Heroe.PALADIN) {
-                return revivirConHeroe(heroe);
+            case "Revivir Aliado" -> {
+                return revivirConHeroe(heroe, objetivoIndex);
             }
-        }
-        case 9 -> {
-            // Para Druida: hechizo de sueño; para Mago: refuerzo (según menú)
-            if (heroe.getTipo() == Tipo_Heroe.DRUIDA || heroe.getTipo() == Tipo_Heroe.MAGO) {
-                return LanzaHechizoDeSueño(heroe);
+            case "Lanzar Hechizo de sueño" -> {
+                return LanzaHechizoDeSueño(heroe, objetivoIndex);
             }
-        }
-        case 10 -> {
-            if (heroe.getTipo() == Tipo_Heroe.MAGO) {
-                return LanzaHechizoRefuerzo(heroe);
+            case "Lanzar Hechizo de refuerzo" -> {
+                return LanzaHechizoRefuerzo(heroe, objetivoIndex);
             }
-        }
-        case 11 -> {
-            if (heroe.getTipo() == Tipo_Heroe.MAGO) {
-                return LanzaHechizoParalisis(heroe);
+            case "Lanzar Hechizo de parálisis" -> {
+                return LanzaHechizoParalisis(heroe, objetivoIndex);
             }
-        }
-        case 12 -> {
-            System.out.println("\nHas decidido pasar el turno.");
-            return true;
+            case "Pasar Turno" -> {
+                dqs.events.BattleEventBus.log("\nHas decidido pasar el turno.");
+                return true;
             }
-        default -> {
-            // caído por defecto si la opción no coincide
+            default -> {
+                dqs.events.BattleEventBus.log(" Opción no implementada: " + seleccion);
+                return false;
+            }
         }
     }
 
-    System.out.println(" Opción inválida o no disponible para este tipo de héroe.");
-    return false;
-}
 
-    /**
-     * Solicita seleccionar un enemigo y ejecuta el ataque del héroe sobre
-     * ese objetivo.
-     */
-    private boolean atacarConHeroe(Heroe heroe) {
-        System.out.println("\n Seleccione el enemigo a atacar:");
-        Enemigo objetivo = seleccionarEnemigo();
+
+
+
+
+
+
+
+
+
+    // --- Nuevas versiones que aceptan índices (no interactivo) ---
+    private Enemigo getEnemigoVivoPorIndice(int idx) {
+        if (idx < 0) return null;
+        int contador = 0;
+        for (Enemigo enemigo : batalla.getEquipoEnemigos()) {
+            if (enemigo != null && enemigo.esta_vivo()) {
+                if (contador == idx) return enemigo;
+                contador++;
+            }
+        }
+        return null;
+    }
+
+    private Heroe getHeroeVivoPorIndice(int idx) {
+        if (idx < 0) return null;
+        int contador = 0;
+        for (Heroe h : batalla.getEquipoHeroes()) {
+            if (h != null && h.esta_vivo()) {
+                if (contador == idx) return h;
+                contador++;
+            }
+        }
+        return null;
+    }
+
+    private Heroe getHeroeMuertoPorIndice(int idx) {
+        if (idx < 0) return null;
+        int contador = 0;
+        for (Heroe h : batalla.getEquipoHeroes()) {
+            if (h != null && !h.esta_vivo()) {
+                if (contador == idx) return h;
+                contador++;
+            }
+        }
+        return null;
+    }
+
+    private boolean atacarConHeroe(Heroe heroe, int enemigoIdx) {
+        Enemigo objetivo = getEnemigoVivoPorIndice(enemigoIdx);
         if (objetivo != null) {
             heroe.atacar(objetivo);
             return true;
         }
+        dqs.events.BattleEventBus.log(" Objetivo inválido para atacar.");
         return false;
     }
 
-    /**
-     * Permite que el héroe defienda a un aliado: delega en la mecánica
-     * implementada en la clase `Heroe`.
-     */
-    private boolean defenderConHeroe(Heroe heroe) {
-        System.out.println("\n Seleccione el aliado a defender:");
-        Heroe aliado = seleccionarHeroe();
+    private boolean defenderConHeroe(Heroe heroe, int aliadoIdx) {
+        Heroe aliado = getHeroeVivoPorIndice(aliadoIdx);
         if (aliado != null && aliado != heroe) {
             heroe.defender(aliado);
             return true;
         } else if (aliado == heroe) {
-            System.out.println(" No puedes defenderte a ti mismo.");
+            dqs.events.BattleEventBus.log(" No puedes defenderte a ti mismo.");
         }
         return false;
     }
 
-    /**
-     * Aplica la acción de provocar sobre un enemigo seleccionado.
-     */
-    private boolean provocarConHeroe(Heroe heroe) {
-        System.out.println("\n Seleccione el enemigo a provocar:");
-        Enemigo enemigo = seleccionarEnemigo();
+    private boolean provocarConHeroe(Heroe heroe, int enemigoIdx) {
+        Enemigo enemigo = getEnemigoVivoPorIndice(enemigoIdx);
         if (enemigo != null) {
             heroe.provocarEnemigo(enemigo);
             return true;
@@ -324,13 +371,8 @@ private boolean ejecutarAccionHeroe(Heroe heroe, int opcion) {
         return false;
     }
 
-    /**
-     * Solicita seleccionar un aliado para curar y ejecuta la habilidad
-     * de curación del héroe (si procede según su clase).
-     */
-    private boolean curarConHeroe(Heroe heroe) {
-        System.out.println("\n Seleccione el aliado a curar:");
-        Heroe aliado = seleccionarHeroe();
+    private boolean curarConHeroe(Heroe heroe, int aliadoIdx) {
+        Heroe aliado = getHeroeVivoPorIndice(aliadoIdx);
         if (aliado != null) {
             heroe.curar(aliado);
             return true;
@@ -338,12 +380,8 @@ private boolean ejecutarAccionHeroe(Heroe heroe, int opcion) {
         return false;
     }
 
-    /**
-     * Restaura mana a un aliado según la habilidad del héroe.
-     */
-    private boolean restaurarManaConHeroe(Heroe heroe) {
-        System.out.println("\n Seleccione el aliado para restaurar mana:");
-        Heroe aliado = seleccionarHeroe();
+    private boolean restaurarManaConHeroe(Heroe heroe, int aliadoIdx) {
+        Heroe aliado = getHeroeVivoPorIndice(aliadoIdx);
         if (aliado != null) {
             heroe.restaurarMana(aliado);
             return true;
@@ -351,13 +389,8 @@ private boolean ejecutarAccionHeroe(Heroe heroe, int opcion) {
         return false;
     }
 
-    /**
-     * Elimina efectos negativos de un aliado seleccionado, delegando a
-     * la implementación del héroe.
-     */
-    private boolean eliminarEfectoConHeroe(Heroe heroe) {
-        System.out.println("\n Seleccione el aliado para eliminar efectos negativos:");
-        Heroe aliado = seleccionarHeroe();
+    private boolean eliminarEfectoConHeroe(Heroe heroe, int aliadoIdx) {
+        Heroe aliado = getHeroeVivoPorIndice(aliadoIdx);
         if (aliado != null) {
             heroe.eliminarEfectoNegativo(aliado);
             return true;
@@ -365,12 +398,8 @@ private boolean ejecutarAccionHeroe(Heroe heroe, int opcion) {
         return false;
     }
 
-    /**
-     * Revive a un aliado caído (si la clase del héroe lo permite).
-     */
-    private boolean revivirConHeroe(Heroe heroe) {
-        System.out.println("\n Seleccione el aliado a revivir:");
-        Heroe aliado = seleccionarHeroeMuerto();
+    private boolean revivirConHeroe(Heroe heroe, int muertoIdx) {
+        Heroe aliado = getHeroeMuertoPorIndice(muertoIdx);
         if (aliado != null) {
             heroe.revivir(aliado);
             return true;
@@ -378,10 +407,8 @@ private boolean ejecutarAccionHeroe(Heroe heroe, int opcion) {
         return false;
     }
 
-    //Aumenta el ataque de un aliado
-    private boolean LanzaHechizoRefuerzo(Heroe heroe){
-        System.out.println("\n Seleccione el aliado a reforzar:");
-        Heroe aliado = seleccionarHeroe();
+    private boolean LanzaHechizoRefuerzo(Heroe heroe, int aliadoIdx){
+        Heroe aliado = getHeroeVivoPorIndice(aliadoIdx);
         if (aliado != null){
             heroe.LanzaHechizoRefuerzo(aliado);
             return true;
@@ -389,12 +416,8 @@ private boolean ejecutarAccionHeroe(Heroe heroe, int opcion) {
         return false;
     }
 
-    /* 
-     * deja lanzar hechizo de sueño
-     */
-    private boolean LanzaHechizoDeSueño(Heroe heroe){
-        System.out.println("\n Seleccionar el enemigo a dormir:");
-        Enemigo objetivo = seleccionarEnemigo();
+    private boolean LanzaHechizoDeSueño(Heroe heroe, int enemigoIdx){
+        Enemigo objetivo = getEnemigoVivoPorIndice(enemigoIdx);
         if (objetivo != null){
             heroe.LanzaHechizoSueño(objetivo);
             return true;
@@ -402,10 +425,8 @@ private boolean ejecutarAccionHeroe(Heroe heroe, int opcion) {
         return false;
     }
 
-    // Método para lanzar parálisis desde el manager (para magos)
-    private boolean LanzaHechizoParalisis(Heroe heroe){
-        System.out.println("\n Seleccionar el enemigo a paralizar:");
-        Enemigo objetivo = seleccionarEnemigo();
+    private boolean LanzaHechizoParalisis(Heroe heroe, int enemigoIdx){
+        Enemigo objetivo = getEnemigoVivoPorIndice(enemigoIdx);
         if (objetivo != null){
             heroe.LanzaHechizoParalisis(objetivo);
             return true;
@@ -415,138 +436,9 @@ private boolean ejecutarAccionHeroe(Heroe heroe, int opcion) {
 
 
 
-    /**
-     * Muestra la lista de enemigos vivos y devuelve la selección del
-     * usuario. Si el usuario elige cancelar, retorna null.
-     */
-    private Enemigo seleccionarEnemigo() {
-        System.out.println("Enemigos disponibles:");
-        int contador = 1;
-        for (Enemigo enemigo : batalla.getEquipoEnemigos()) {
-            if (enemigo != null && enemigo.esta_vivo()) {
-                System.out.println(contador + ". " + enemigo.getNombre() + " [" + enemigo.getTipo().name() + "] " +
-                        "HP: " + enemigo.getHp());
-                contador++;
-            }
-        }
-        System.out.println(contador + ". Cancelar");
-        System.out.print("Seleccione: ");
 
-        int opcion = leerEntero();
-        if (opcion == contador) return null; // Cancelar
 
-        // Buscar el enemigo seleccionado
-        contador = 1;
-        for (Enemigo enemigo : batalla.getEquipoEnemigos()) {
-            if (enemigo != null && enemigo.esta_vivo()) {
-                if (contador == opcion) {
-                    return enemigo;
-                }
-                contador++;
-            }
-        }
 
-        System.out.println(" Selección inválida.");
-        return null;
-    }
-
-    /**
-     * Muestra la lista de héroes vivos y devuelve el seleccionado; si
-     * el usuario cancela retorna null.
-     */
-    private Heroe seleccionarHeroe() {
-        System.out.println("Héroes disponibles:");
-        int contador = 1;
-        for (Heroe heroe : batalla.getEquipoHeroes()) {
-            if (heroe != null && heroe.esta_vivo()) {
-                System.out.println(contador + ". " + heroe.getNombre() + " [" + heroe.getTipo().name() + "] " +
-                        "HP: " + heroe.getHp() + " | MP: " + heroe.getMp());
-                contador++;
-            }
-        }
-        System.out.println(contador + ". Cancelar");
-        System.out.print("Seleccione: ");
-
-        int opcion = leerEntero();
-        if (opcion == contador) return null; // Cancelar
-
-        // Buscar el héroe seleccionado
-        contador = 1;
-        for (Heroe heroe : batalla.getEquipoHeroes()) {
-            if (heroe != null && heroe.esta_vivo()) {
-                if (contador == opcion) {
-                    return heroe;
-                }
-                contador++;
-            }
-        }
-
-        System.out.println(" Selección inválida.");
-        return null;
-    }
-
-    /**
-     * Muestra la lista de héroes caídos (no vivos) para operaciones como
-     * revivir. Retorna null si no hay candidatos o si el usuario
-     * cancela.
-     */
-    private Heroe seleccionarHeroeMuerto() {
-        System.out.println("Héroes caídos:");
-        int contador = 1;
-        for (Heroe heroe : batalla.getEquipoHeroes()) {
-            if (heroe != null && !heroe.esta_vivo()) {
-                System.out.println(contador + ". " + heroe.getNombre() + " [" + heroe.getTipo().name() + "] " +
-                        "HP: " + heroe.getHp());
-                contador++;
-            }
-        }
-
-        if (contador == 1) {
-            System.out.println("No hay héroes caídos para revivir.");
-            return null;
-        }
-
-        System.out.println(contador + ". Cancelar");
-        System.out.print("Seleccione: ");
-
-        int opcion = leerEntero();
-        if (opcion == contador) return null; // Cancelar
-
-        // Buscar el héroe muerto seleccionado
-        contador = 1;
-        for (Heroe heroe : batalla.getEquipoHeroes()) {
-            if (heroe != null && !heroe.esta_vivo()) {
-                if (contador == opcion) {
-                    return heroe;
-                }
-                contador++;
-            }
-        }
-
-        System.out.println(" Selección inválida.");
-        return null;
-    }
-
-    /**
-     * Lee un entero de la entrada usando el `Scanner` compartido.
-     * Si la entrada se cierra devuelve -1 para que el caller lo
-     * maneje (en lugar de cerrar la JVM directamente).
-     */
-    private int leerEntero() {
-        while (true) {
-            try {
-                if (!scanner.hasNextLine()) {
-                    System.out.println("\nNo hay entrada disponible. Terminando la simulación.");
-                    // En lugar de System.exit, devolvemos un valor inválido para que el caller pueda manejar.
-                    return -1;
-                }
-                String input = scanner.nextLine();
-                return Integer.parseInt(input);
-            } catch (NumberFormatException e) {
-                System.out.print(" Ingrese un número válido: ");
-            }
-        }
-    }
 
     /**
      * Comprueba si uno de los bandos ha perdido a todos sus miembros
@@ -571,11 +463,11 @@ private boolean ejecutarAccionHeroe(Heroe heroe, int opcion) {
         }
 
         if (!heroesVivos) {
-            System.out.println("\n ¡Los Enemigos han ganado la batalla!");
+            dqs.events.BattleEventBus.log("\n ¡Los Enemigos han ganado la batalla!");
             batalla.setBatallaTerminada(true);
             return true;
         } else if (!enemigosVivos) {
-            System.out.println("\n ¡Los Héroes han ganado la batalla!");
+            dqs.events.BattleEventBus.log("\n ¡Los Héroes han ganado la batalla!");
             batalla.setBatallaTerminada(true);
             return true;
         }
