@@ -20,10 +20,11 @@ public final class BattleEventBus {
     }
 
     public static void log(String message) {
-        if (listener != null) {
-            try { listener.onEvent(message); } catch (Exception e) { System.out.println(message); }
-        } else {
-            System.out.println(message);
+        if (listener == null) {
+            // No hacer fallback a System.out: exigir que exista un listener
+            throw new IllegalStateException("No BattleEventListener registered. Call BattleEventBus.setListener(listener) before publishing events.");
         }
+        // Entregar el mensaje al listener y dejar que éste maneje errores/format
+        listener.onEvent(message);
     }
 }

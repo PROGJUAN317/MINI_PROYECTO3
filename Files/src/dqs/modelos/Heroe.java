@@ -2,8 +2,6 @@ package dqs.modelos;
 
 import dqs.events.BattleEventBus;
 
-import java.util.Scanner;
-
 public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
     private final Tipo_Heroe tipo;
 
@@ -22,63 +20,9 @@ public class Heroe extends Personaje implements Sanador, Tanque, Hechicero {
         }
     }
     
-    //METODO PARA CREAR UN HEROE PIDIENDO DATOS POR CONSOLA
-    public static Heroe crearHeroePorConsola() {
-        Scanner sc = new Scanner(System.in);
-
-    BattleEventBus.log("Crear héroe: ");
-    BattleEventBus.log("Nombre: ");
-        String nombre = sc.nextLine();
-
-    BattleEventBus.log("Seleccione el tipo de heroe: ");
-        for (Tipo_Heroe t : Tipo_Heroe.values()) {
-                BattleEventBus.log("- " + t.name() + ": " + t.getDescripcion());
-        }
-
-        Tipo_Heroe tipo = null;
-        while (tipo == null) {
-            BattleEventBus.log("Ingrese el tipo (MAGO/GUERRERO/PALADIN/DRUIDA): ");
-            String entrada = sc.nextLine().toUpperCase();
-            try {
-                tipo = Tipo_Heroe.valueOf(entrada);
-            } catch (IllegalArgumentException e) {
-                BattleEventBus.log("Tipo inválido. Intente de nuevo.");
-            } 
-        }
-
-    BattleEventBus.log("\nIngrese los atributos dentro de los rasgos permitidos:");
-    BattleEventBus.log("HP: " + tipo.getMinHP() + " - " + tipo.getMaxHP());
-    BattleEventBus.log("MP: " + tipo.getMinMP() + " - " + tipo.getMaxMP());
-    BattleEventBus.log("Ataque: " + tipo.getMinAtaque() + " - " + tipo.getMaxAtaque());
-    BattleEventBus.log("Defensa: " + tipo.getMinDefensa() + " - " + tipo.getMaxDefensa());
-
-        int hp = pedirEnRango(sc, "HP", tipo.getMinHP(), tipo.getMaxHP());
-        int mp = pedirEnRango(sc, "MP", tipo.getMinMP(), tipo.getMaxMP());
-        int ataque = pedirEnRango(sc, "Ataque", tipo.getMinAtaque(), tipo.getMaxAtaque());
-        int defensa = pedirEnRango(sc, "Defensa", tipo.getMinDefensa(), tipo.getMaxDefensa());
-        int velocidad = (int)(Math.random() * 20 + 10);
-
-        return new Heroe(nombre, tipo, hp, mp, ataque, defensa, velocidad);
-    }
-
-//METODO AUXILIAR PARA PEDIR NUMEROS DENTRO DE UN RANGO
- private static int pedirEnRango(Scanner sc, String atributo, int min, int max) {
-        int valor;
-        while (true) {
-            BattleEventBus.log(atributo + ": ");
-            try {
-                valor = Integer.parseInt(sc.nextLine());
-                if (valor >= min && valor <= max) {
-                    break;
-                } else {
-                    BattleEventBus.log(" El valor debe estar entre " + min + " y " + max + ".");
-                }
-            } catch (NumberFormatException e) {
-                BattleEventBus.log(" Ingresa un número válido.");
-            }
-        }
-        return valor;
-    }
+    // Creación de héroes interactiva movida a la capa de vista/controlador.
+    // Para construir héroes desde el modelo use el constructor público
+    // Heroe(String nombre, Tipo_Heroe tipo, int hp, int mp, int ataque, int defensa, int velocidad)
 
     public void mostrarEstado() {
     BattleEventBus.log("\n " + nombre + " [" + tipo.name() + "]");

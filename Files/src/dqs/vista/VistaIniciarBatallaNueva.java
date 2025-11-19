@@ -85,6 +85,14 @@ public class VistaIniciarBatallaNueva extends JFrame implements dqs.controlador.
             return null;
         }
     }
+    
+    @Override
+    public int solicitarSeleccion(String titulo, String[] opciones) {
+        Object seleccion = JOptionPane.showInputDialog(this, titulo, "Seleccionar", JOptionPane.PLAIN_MESSAGE, null, opciones, opciones.length > 0 ? opciones[0] : null);
+        if (seleccion == null) return -1;
+        for (int i = 0; i < opciones.length; i++) if (opciones[i].equals(seleccion)) return i;
+        return -1;
+    }
 
     public VistaIniciarBatallaNueva() {
         setTitle("Dragon Quest VIII - Batalla");
@@ -114,8 +122,14 @@ public class VistaIniciarBatallaNueva extends JFrame implements dqs.controlador.
                 add(scroll, BorderLayout.EAST);
                 add(bottom, BorderLayout.SOUTH);
 
-                // Crear batalla y equipos
+                // Crear batalla
                 this.batalla = new Batalla();
+                // Crear el controlador y registrar el listener en el bus ANTES de crear los equipos
+                // Esto asegura que los mensajes publicados por el modelo durante la creación
+                // de héroes/enemigos sean entregados al listener y no provoquen excepciones.
+                this.controlador = new ControladorVistaBatalla(this.batalla, this);
+                dqs.events.BattleEventBus.setListener(this.controlador);
+
                 try {
                     this.batalla.crearEquipoHeroesPorDefecto();
                 } catch (RuntimeException ex) {
@@ -166,7 +180,8 @@ public class VistaIniciarBatallaNueva extends JFrame implements dqs.controlador.
 
                 refreshUI();
                 // Delegar la orquestación de turnos al controlador (MVC)
-                this.controlador = new ControladorVistaBatalla(this.batalla, this);
+                // (el controlador ya fue construido y registrado como listener antes)
+                if (this.controlador == null) this.controlador = new ControladorVistaBatalla(this.batalla, this);
                 this.controlador.iniciar();
 
                 setVisible(true);

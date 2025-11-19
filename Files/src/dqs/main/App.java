@@ -275,6 +275,8 @@
 
 package dqs.main;
 import dqs.vista.*;
+import dqs.vista.VistaBatallaCLI;
+import dqs.controlador.ControladorVistaBatalla;
 import javax.swing.SwingUtilities;
 
 /**
@@ -290,8 +292,49 @@ public class App {
     public static void main(String[] args) {
         System.out.println("  ¡Bienvenido al Sistema de Batallas RPG!");
         System.out.println("==========================================");
+        // Ayuda rápida
+        if (args != null) {
+            for (String a : args) {
+                if ("--help".equalsIgnoreCase(a) || "-h".equalsIgnoreCase(a)) {
+                    System.out.println("Uso: java -cp Files/bin dqs.main.App [--cli | true | false]");
+                    System.out.println("  --cli o true  : iniciar en modo consola (CLI)");
+                    System.out.println("  false o 0     : iniciar en modo GUI");
+                    System.out.println("  --help, -h    : mostrar esta ayuda");
+                    return;
+                }
+            }
+        }
+        // Determina modo CLI/GUI. Se acepta:
+        // - primer argumento booleano: "true"/"false" o "1"/"0"
+        // - flags: --cli o -cli
+        boolean cli = false;
+        if (args != null && args.length > 0) {
+            for (String a : args) {
+                if ("--cli".equalsIgnoreCase(a) || "-cli".equalsIgnoreCase(a)) { cli = true; break; }
+                if ("true".equalsIgnoreCase(a) || "1".equals(a)) { cli = true; break; }
+                if ("false".equalsIgnoreCase(a) || "0".equals(a)) { cli = false; break; }
+            }
+        }
 
-        mostrarVistaIniciarBatallaNueva();
+        if (cli) {
+            // Modo CLI deshabilitado temporalmente. Para volver a habilitar,
+            // descomenta el bloque siguiente y elimina este mensaje.
+            
+            // Modo consola: crear vista CLI y registrar listener antes de crear equipos
+            VistaBatallaCLI vistaCLI = new VistaBatallaCLI();
+            // Registrar la vista CLI como listener para que reciba los eventos publicados
+            dqs.events.BattleEventBus.setListener(vistaCLI);
+            dqs.modelos.Batalla batalla = new dqs.modelos.Batalla();
+            try { batalla.crearEquipoHeroesPorDefecto(); } catch (RuntimeException ex) { System.err.println("Advertencia: no se pudieron crear héroes por defecto: " + ex.getMessage()); }
+            try { batalla.crearEquipoEnemigos(); } catch (RuntimeException ex) { System.err.println("Advertencia: no se pudieron crear enemigos por defecto: " + ex.getMessage()); }
+            ControladorVistaBatalla controlador = new ControladorVistaBatalla(batalla, vistaCLI);
+            vistaCLI.setControlador(controlador);
+            controlador.iniciar();
+            
+            System.out.println("Modo CLI deshabilitado temporalmente. Inicie sin --cli para GUI.");
+        } else {
+            mostrarVistaIniciarBatallaNueva();
+        }
     }
 
     /**

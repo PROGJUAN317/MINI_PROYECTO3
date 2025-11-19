@@ -1,4 +1,6 @@
-package dqs.controlador;
+package dqs.vista;
+
+import dqs.controlador.BattleEventListener;
 
 /**
  * Implementación sencilla que envía los eventos de dominio a la
